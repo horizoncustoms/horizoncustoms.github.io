@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizon Customs | Official Hub</title>
+    <title>Horizon Customs</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,55 +11,69 @@
             color: #c9d1d9;
             margin: 0;
             padding: 0;
+            height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            overflow: hidden;
+        }
+        /* Orange top bar */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: #ff8800;
+        }
+        /* Blackish-gray main rectangle */
+        .main-card {
+            background-color: #121212;
+            border: 1px solid #222222;
+            width: 90%;
+            max-width: 500px;
+            padding: 50px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            padding: 40px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            margin: 0 0 15px 0;
+            letter-spacing: 1px;
         }
-        h1 { color: #58a6ff; margin-bottom: 10px; }
-        p { color: #8b949e; font-size: 15px; line-height: 1.6; }
-        .btn-group {
-            margin-top: 30px;
+        p {
+            color: #888888;
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+        .links {
             display: flex;
-            gap: 15px;
             justify-content: center;
-            flex-wrap: wrap;
+            gap: 15px;
         }
-        .btn {
-            background: #238636;
-            color: white;
+        .links a {
+            color: #ff8800;
             text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: background 0.2s;
+            font-size: 14px;
+            font-weight: 600;
         }
-        .btn:hover { background: #2ea043; }
-        .btn-secondary {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
+        .links a:hover {
+            text-decoration: underline;
         }
-        .btn-secondary:hover { background: #30363d; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1><:logo:1527725670522687598> Horizon Customs</h1>
-        <p>The number one and only bot you will need to manage your ERLC server. Access your server management control panel or explore our documentation below.</p>
+    <div class="top-bar"></div>
+
+    <div class="main-card">
+        <h1>Horizon Customs</h1>
+        <p>The official hub for services, tools, and documentation.</p>
         
-        <div class="btn-group">
-            <a href="/panel/owner" class="btn">⚙️ Open Owner Panel</a>
-            <a href="https://discord.gg/UdAKT57TK9" target="_blank" class="btn btn-secondary">💬 Support Server</a>
+        <div class="links">
+            <a href="/tos">Terms of Service</a>
         </div>
     </div>
 </body>
