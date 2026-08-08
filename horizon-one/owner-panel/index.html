@@ -3,106 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizon One - Server Owner Panel</title>
+    <title>Horizon One | Server Management Panel</title>
     <style>
         :root {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --bg-color: #0d1117;
+            --card-bg: #121212;
+            --border-color: #222222;
+            --accent-orange: #f67111;
+            --text-main: #c9d1d9;
+            --text-muted: #888888;
+            --sidebar-width: 260px;
         }
+
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            flex-direction: column;
         }
-        .container {
-            background: #1e293b;
+
+        /* Top orange bar */
+        .top-bar {
+            width: 100%;
+            height: 6px;
+            background-color: var(--accent-orange);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        /* Layout Container */
+        .app-layout {
+            display: flex;
+            flex: 1;
+            margin-top: 6px;
+        }
+
+        /* Sidebar Styling */
+        sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            height: calc(100vh - 6px);
+            box-sizing: border-box;
+        }
+
+        .sidebar-brand {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand span {
+            color: var(--accent-orange);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .sidebar-menu a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            color: #ffffff;
+            background-color: rgba(246, 113, 17, 0.1);
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .sidebar-footer {
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 50px;
+            box-sizing: border-box;
+        }
+
+        .content-container {
+            max-width: 900px;
+            margin: auto;
+            width: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
             text-align: center;
-            max-width: 500px;
-            width: 100%;
-            border-top: 4px solid #f67111;
         }
-        h1 { margin-bottom: 10px; color: #f67111; }
-        p { color: #94a3b8; margin-bottom: 25px; }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.2rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
         .btn {
-            background-color: #f67111;
-            color: white;
+            background-color: var(--accent-orange);
+            color: #ffffff;
             border: none;
-            padding: 12px 24px;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-block;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #d45b09;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: #2a2a2a;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        /* Server Selector Dropdown Form */
+        .select-group {
+            margin-bottom: 25px;
+        }
+
+        select {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent-orange);
+        }
+
+        /* Modules Grid Layout */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            text-align: left;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .module-card {
+            background-color: #181a1f;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .module-card:hover {
+            border-color: #333333;
+        }
+
+        .module-card.locked {
+            opacity: 0.45;
+            pointer-events: none;
+            filter: grayscale(80%);
+        }
+
+        .plus-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--accent-orange);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .module-title {
             font-size: 16px;
             font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .module-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0 0 15px 0;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Footer section */
+        footer {
+            margin-top: 50px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
             text-decoration: none;
-            display: inline-block;
-            transition: background 0.2s;
+            transition: color 0.2s;
         }
-        .btn:hover { background-color: #d45b09; }
-        .hidden { display: none; }
-        .guild-card {
-            background: #334155;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            text-align: left;
-            border-left: 4px solid #f67111;
+
+        .footer-links a:hover {
+            color: var(--accent-orange);
         }
-        .error { color: #f87171; font-weight: bold; }
-        .logout-btn {
-            background-color: #ef4444;
-            margin-top: 20px;
+
+        @media (max-width: 768px) {
+            sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 20px; }
+            .content-container { padding: 30px 20px; }
         }
-        .logout-btn:hover { background-color: #dc2626; }
     </style>
 </head>
 <body>
+    <div class="top-bar"></div>
 
-    <div class="container">
-        <!-- Login Section -->
-        <div id="login-section">
-            <h1>Horizon One Owner Panel</h1>
-            <p>Verify your Discord account ownership to access server configurations and security logs.</p>
-            <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
-        </div>
-
-        <!-- Dashboard Panel Section -->
-        <div id="panel-section" class="hidden">
-            <h1>Welcome, <span id="username">User</span>!</h1>
-            <p>Authenticated Server Ownership Panel</p>
-            <div id="guild-container">
-                <!-- Dynamically populated server ownership details -->
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <sidebar>
+            <div class="sidebar-brand">
+                Horizon <span>Customs</span>
             </div>
-            <button class="btn logout-btn" onclick="logout()">Log Out</button>
-        </div>
+            <ul class="sidebar-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/owner-panel/" class="active">Owner Panel</a></li>
+                <li><a href="https://discord.gg/UdAKT57TK9" target="_blank">Discord Server</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                &copy; 2026 Horizon Customs
+            </div>
+        </sidebar>
 
-        <!-- Error Section -->
-        <div id="error-section" class="hidden">
-            <h1>Access Denied</h1>
-            <p class="error" id="error-message">You do not own any servers running Horizon One or authorization failed.</p>
-            <button class="btn logout-btn" onclick="logout()">Try Again</button>
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="content-container">
+                
+                <!-- 1. Login View -->
+                <div id="login-section">
+                    <h1>Server Owner Dashboard</h1>
+                    <p>Authenticate with your Discord account to configure and manage your Horizon One protected servers.</p>
+                    <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
+                </div>
+
+                <!-- 2. Server Selector View -->
+                <div id="selector-section" class="hidden">
+                    <h1>Select a Server</h1>
+                    <p>Choose an eligible server where you are the owner and Horizon One is added.</p>
+                    
+                    <div class="select-group">
+                        <select id="server-select" onchange="handleServerSelection()">
+                            <option value="" disabled selected>-- Select a Server --</option>
+                        </select>
+                    </div>
+
+                    <button id="continue-btn" class="btn" disabled onclick="loadDashboard()">Continue</button>
+                </div>
+
+                <!-- 3. Dyno-style Modules Dashboard View -->
+                <div id="dashboard-section" class="hidden">
+                    <h1 id="dashboard-server-name">Managing Server</h1>
+                    <p>Configure automated moderation, anti-nuke safeguards, and bot modules.</p>
+
+                    <div class="modules-grid">
+                        <!-- Free Module: Anti-Nuke Protection -->
+                        <div class="module-card">
+                            <div class="module-title">🛡️ Anti-Nuke Protection</div>
+                            <p class="module-desc">Detects and blocks mass channel deletions, unauthorized ban spikes, and raider alerts.</p>
+                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
+                        </div>
+
+                        <!-- Free Module: Anti-Spam -->
+                        <div class="module-card">
+                            <div class="module-title">💬 Anti-Spam & Links</div>
+                            <p class="module-desc">Deletes mass message spam (7+ msgs in 30s) and unauthorized invite links.</p>
+                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
+                        </div>
+
+                        <!-- Free Module: Honeypot Protection -->
+                        <div class="module-card">
+                            <div class="module-title">🪤 Honeypot Traps</div>
+                            <p class="module-desc">Instantly traps and isolates compromised accounts hitting honeypot channels.</p>
+                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
+                        </div>
+
+                        <!-- Horizon+ Locked Module: Verification -->
+                        <div class="module-card locked">
+                            <div class="plus-badge">Horizon+ Only</div>
+                            <div class="module-title">✅ Advanced Verification</div>
+                            <p class="module-desc">Custom web-based button verification gating to prevent bot raids.</p>
+                            <div class="toggle-switch"><input type="checkbox" disabled> Locked</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" style="background:#222; margin-right: 10px;" onclick="location.reload()">Switch Server</button>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer>
+                <div>&copy; 2026 Horizon Customs. All rights reserved.</div>
+                <div class="footer-links">
+                    <a href="/privacypolicy">Privacy Policy</a>
+                    <a href="/tos">Terms of Service</a>
+                </div>
+            </footer>
         </div>
     </div>
 
     <script>
-        // Your Discord Application Client ID
         const CLIENT_ID = '1530208568392028302'; 
         
-        // Accurate URI assignment ensuring correct trailing paths for GitHub Pages / Localhost
         let REDIRECT_URI;
         const currentHost = window.location.hostname;
-
         if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
             REDIRECT_URI = window.location.origin + window.location.pathname;
         } else {
-            // Must precisely match the URI added in Discord Developer Portal
             REDIRECT_URI = 'https://horizoncustoms.github.io/horizon-one/owner-panel/';
         }
+
+        let userGuildsData = [];
 
         window.onload = async () => {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
@@ -110,7 +403,7 @@
 
             if (accessToken) {
                 localStorage.setItem('discord_token', accessToken);
-                window.location.hash = ''; // Clear token from URL bar
+                window.location.hash = '';
                 fetchUserData(accessToken);
             } else {
                 const savedToken = localStorage.getItem('discord_token');
@@ -127,63 +420,63 @@
 
         async function fetchUserData(token) {
             try {
-                // Fetch User Identity Profile
-                const userRes = await fetch('https://discord.com/api/users/@me', {
-                    headers: { authorization: `Bearer ${token}` }
-                });
-                if (!userRes.ok) throw new Error('Failed to fetch user data');
-                const userData = await userRes.json();
-
-                document.getElementById('username').innerText = userData.username;
-
-                // Fetch User Guilds to evaluate ownership status
+                // Fetch User Guilds
                 const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
                     headers: { authorization: `Bearer ${token}` }
                 });
                 if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
-                const guildsData = await guildsRes.json();
+                userGuildsData = await guildsRes.json();
 
-                // Filter guilds where the authenticated user has explicit ownership
-                const ownedGuilds = guildsData.filter(guild => guild.owner === true);
+                // Filter servers where user is owner (owner: true)
+                // Note: Standard Discord OAuth2 token scope 'guilds' does not explicitly tell you if the bot is in it natively without bot backend routing, 
+                // but we populate owned servers here.
+                const ownedGuilds = userGuildsData.filter(guild => guild.owner === true);
 
-                const guildContainer = document.getElementById('guild-container');
-                guildContainer.innerHTML = '';
+                const selectElement = document.getElementById('server-select');
+                selectElement.innerHTML = '<option value="" disabled selected>-- Select an Owned Server --</option>';
 
                 if (ownedGuilds.length === 0) {
-                    showError("Access Denied: You must be the explicit Owner of at least one server to view this dashboard.");
+                    alert("You do not own any Discord servers.");
                     return;
                 }
 
                 ownedGuilds.forEach(guild => {
-                    const card = document.createElement('div');
-                    card.className = 'guild-card';
-                    card.innerHTML = `
-                        <h3 style="margin-top:0; color:#f67111;">👑 ${guild.name}</h3>
-                        <p style="margin:0; font-size: 14px; color: #cbd5e1;">Status: Verified Server Owner</p>
-                    `;
-                    guildContainer.appendChild(card);
+                    const option = document.createElement('option');
+                    option.value = guild.id;
+                    option.textContent = guild.name;
+                    selectElement.appendChild(option);
                 });
 
                 document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('error-section').classList.add('hidden');
-                document.getElementById('panel-section').classList.remove('hidden');
+                document.getElementById('selector-section').classList.remove('hidden');
 
             } catch (err) {
                 console.error(err);
-                logout();
+                localStorage.removeItem('discord_token');
             }
         }
 
-        function showError(msg) {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('panel-section').classList.add('hidden');
-            document.getElementById('error-section').classList.remove('hidden');
-            document.getElementById('error-message').innerText = msg;
+        function handleServerSelection() {
+            const selectElement = document.getElementById('server-select');
+            const continueBtn = document.getElementById('continue-btn');
+            if (selectElement.value) {
+                continueBtn.removeAttribute('disabled');
+            } else {
+                continueBtn.setAttribute('disabled', 'true');
+            }
         }
 
-        function logout() {
-            localStorage.removeItem('discord_token');
-            window.location.href = REDIRECT_URI;
+        function loadDashboard() {
+            const selectElement = document.getElementById('server-select');
+            const selectedGuildId = selectElement.value;
+            const selectedGuild = userGuildsData.find(g => g.id === selectedGuildId);
+
+            if (selectedGuild) {
+                document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
+            }
+
+            document.getElementById('selector-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
         }
     </script>
 </body>
