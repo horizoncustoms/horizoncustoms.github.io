@@ -166,7 +166,6 @@
             cursor: not-allowed;
         }
 
-        /* Server Selector Dropdown Form */
         .select-group {
             margin-bottom: 25px;
         }
@@ -188,7 +187,6 @@
             border-color: var(--accent-orange);
         }
 
-        /* Modules Grid Layout */
         .modules-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -205,10 +203,6 @@
             padding: 20px;
             position: relative;
             transition: border-color 0.2s;
-        }
-
-        .module-card:hover {
-            border-color: #333333;
         }
 
         .module-card.locked {
@@ -254,7 +248,6 @@
 
         .hidden { display: none !important; }
 
-        /* Footer section */
         footer {
             margin-top: 50px;
             border-top: 1px solid var(--border-color);
@@ -299,7 +292,7 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/">Home</a></li>
-                <li><a href="/owner-panel/" class="active">Owner Panel</a></li>
+                <li><a href="/horizon-one/owner-panel/" class="active">Owner Panel</a></li>
                 <li><a href="https://discord.gg/UdAKT57TK9" target="_blank">Discord Server</a></li>
             </ul>
             <div class="sidebar-footer">
@@ -314,18 +307,18 @@
                 <!-- 1. Login View -->
                 <div id="login-section">
                     <h1>Server Owner Dashboard</h1>
-                    <p>Authenticate with your Discord account to configure and manage your Horizon One protected servers.</p>
+                    <p>Authenticate with your Discord account to manage your Horizon+ servers.</p>
                     <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
                 </div>
 
                 <!-- 2. Server Selector View -->
                 <div id="selector-section" class="hidden">
                     <h1>Select a Server</h1>
-                    <p>Choose an eligible server where you are the owner and Horizon One is added.</p>
+                    <p>Choose an eligible server where you are the owner, the bot is present, and Horizon+ is active.</p>
                     
                     <div class="select-group">
                         <select id="server-select" onchange="handleServerSelection()">
-                            <option value="" disabled selected>-- Select a Server --</option>
+                            <option value="" disabled selected>-- Select an Eligible Server --</option>
                         </select>
                     </div>
 
@@ -338,24 +331,17 @@
                     <p>Configure automated moderation, anti-nuke safeguards, and bot modules.</p>
 
                     <div class="modules-grid">
-                        <!-- Free Module: Anti-Nuke Protection -->
+                        <!-- Free Module -->
                         <div class="module-card">
                             <div class="module-title">🛡️ Anti-Nuke Protection</div>
-                            <p class="module-desc">Detects and blocks mass channel deletions, unauthorized ban spikes, and raider alerts.</p>
+                            <p class="module-desc">Detects and blocks mass channel deletions and unauthorized ban spikes.</p>
                             <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
                         </div>
 
-                        <!-- Free Module: Anti-Spam -->
+                        <!-- Free Module -->
                         <div class="module-card">
                             <div class="module-title">💬 Anti-Spam & Links</div>
-                            <p class="module-desc">Deletes mass message spam (7+ msgs in 30s) and unauthorized invite links.</p>
-                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
-                        </div>
-
-                        <!-- Free Module: Honeypot Protection -->
-                        <div class="module-card">
-                            <div class="module-title">🪤 Honeypot Traps</div>
-                            <p class="module-desc">Instantly traps and isolates compromised accounts hitting honeypot channels.</p>
+                            <p class="module-desc">Deletes mass message spam and unauthorized invite links.</p>
                             <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
                         </div>
 
@@ -364,6 +350,14 @@
                             <div class="plus-badge">Horizon+ Only</div>
                             <div class="module-title">✅ Advanced Verification</div>
                             <p class="module-desc">Custom web-based button verification gating to prevent bot raids.</p>
+                            <div class="toggle-switch"><input type="checkbox" disabled> Locked</div>
+                        </div>
+
+                        <!-- Horizon+ Locked Module: Advanced Logs -->
+                        <div class="module-card locked">
+                            <div class="plus-badge">Horizon+ Only</div>
+                            <div class="module-title">📋 Extended Audit Logs</div>
+                            <p class="module-desc">Deep logging archives for every message edit, deletion, and role change.</p>
                             <div class="toggle-switch"><input type="checkbox" disabled> Locked</div>
                         </div>
                     </div>
@@ -405,11 +399,6 @@
                 localStorage.setItem('discord_token', accessToken);
                 window.location.hash = '';
                 fetchUserData(accessToken);
-            } else {
-                const savedToken = localStorage.getItem('discord_token');
-                if (savedToken) {
-                    fetchUserData(savedToken);
-                }
             }
         };
 
@@ -420,30 +409,57 @@
 
         async function fetchUserData(token) {
             try {
-                // Fetch User Guilds
+                // 1. Fetch user's guilds from Discord
                 const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
                     headers: { authorization: `Bearer ${token}` }
                 });
                 if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
-                userGuildsData = await guildsRes.json();
+                const userGuilds = await guildsRes.json();
 
-                // Filter servers where user is owner (owner: true)
-                // Note: Standard Discord OAuth2 token scope 'guilds' does not explicitly tell you if the bot is in it natively without bot backend routing, 
-                // but we populate owned servers here.
-                const ownedGuilds = userGuildsData.filter(guild => guild.owner === true);
-
-                const selectElement = document.getElementById('server-select');
-                selectElement.innerHTML = '<option value="" disabled selected>-- Select an Owned Server --</option>';
+                // Filter servers where user is explicit owner
+                const ownedGuilds = userGuilds.filter(guild => guild.owner === true);
 
                 if (ownedGuilds.length === 0) {
                     alert("You do not own any Discord servers.");
                     return;
                 }
 
-                ownedGuilds.forEach(guild => {
+                // 2. Fetch plus.json database from your repository/backend directory
+                let plusServerIds = [];
+                try {
+                    const plusRes = await fetch('../plus.json'); // Adjust path relative to owner-panel folder if needed
+                    if (plusRes.ok) {
+                        const plusData = await plusRes.json();
+                        // Assuming plus.json stores an array of server IDs or objects containing guildId
+                        plusServerIds = Array.isArray(plusData) ? plusData : (plusData.servers || []);
+                    }
+                } catch (e) {
+                    console.warn("Could not load plus.json database directly. Ensure path is correct.", e);
+                }
+
+                // 3. Filter criteria: User must own it AND it must exist in plus.json database 
+                // (Note: Discord's standard user guilds endpoint returns servers both you and the bot share if permissions match, 
+                // or you can cross-verify against your bot shared configuration)
+                const eligibleGuilds = ownedGuilds.filter(guild => {
+                    // Check if server ID is listed inside plus.json
+                    const isPlus = plusServerIds.some(item => (typeof item === 'string' ? item === guild.id : item.guildId === guild.id));
+                    return isPlus;
+                });
+
+                userGuildsData = eligibleGuilds;
+
+                const selectElement = document.getElementById('server-select');
+                selectElement.innerHTML = '<option value="" disabled selected>-- Select an Eligible Server --</option>';
+
+                if (eligibleGuilds.length === 0) {
+                    alert("No eligible servers found. Make sure you own the server, have the bot added, and have an active Horizon+ subscription in plus.json.");
+                    return;
+                }
+
+                eligibleGuilds.forEach(guild => {
                     const option = document.createElement('option');
                     option.value = guild.id;
-                    option.textContent = guild.name;
+                    option.textContent = `${guild.name} (Horizon+)`;
                     selectElement.appendChild(option);
                 });
 
