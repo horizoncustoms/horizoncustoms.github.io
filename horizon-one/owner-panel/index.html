@@ -306,19 +306,19 @@
                 
                 <!-- 1. Login View -->
                 <div id="login-section">
-                    <h1>Server Owner Dashboard</h1>
-                    <p>Authenticate with your Discord account to manage your Horizon+ servers.</p>
+                    <h1>Horizon One Owner Panel</h1>
+                    <p>Authenticate with your Discord account to manage your Horizon One protected servers.</p>
                     <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
                 </div>
 
                 <!-- 2. Server Selector View -->
                 <div id="selector-section" class="hidden">
                     <h1>Select a Server</h1>
-                    <p>Choose an eligible server where you are the owner, the bot is present, and Horizon+ is active.</p>
+                    <p>Choose a server where you are the owner and Horizon One is added.</p>
                     
                     <div class="select-group">
                         <select id="server-select" onchange="handleServerSelection()">
-                            <option value="" disabled selected>-- Select an Eligible Server --</option>
+                            <option value="" disabled selected>-- Select Your Server --</option>
                         </select>
                     </div>
 
@@ -328,25 +328,25 @@
                 <!-- 3. Dyno-style Modules Dashboard View -->
                 <div id="dashboard-section" class="hidden">
                     <h1 id="dashboard-server-name">Managing Server</h1>
-                    <p>Configure automated moderation, anti-nuke safeguards, and bot modules.</p>
+                    <p>Configure automated moderation, security systems, and bot features.</p>
 
                     <div class="modules-grid">
-                        <!-- Free Module -->
+                        <!-- Free Module: Anti-Nuke -->
                         <div class="module-card">
                             <div class="module-title">🛡️ Anti-Nuke Protection</div>
-                            <p class="module-desc">Detects and blocks mass channel deletions and unauthorized ban spikes.</p>
+                            <p class="module-desc">Detects and blocks mass channel deletions, unauthorized ban spikes, and raider alerts.</p>
                             <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
                         </div>
 
-                        <!-- Free Module -->
+                        <!-- Free Module: Anti-Spam -->
                         <div class="module-card">
                             <div class="module-title">💬 Anti-Spam & Links</div>
-                            <p class="module-desc">Deletes mass message spam and unauthorized invite links.</p>
+                            <p class="module-desc">Deletes mass message spam and unauthorized invite links automatically.</p>
                             <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
                         </div>
 
                         <!-- Horizon+ Locked Module: Verification -->
-                        <div class="module-card locked">
+                        <div id="mod-verification" class="module-card locked">
                             <div class="plus-badge">Horizon+ Only</div>
                             <div class="module-title">✅ Advanced Verification</div>
                             <p class="module-desc">Custom web-based button verification gating to prevent bot raids.</p>
@@ -354,7 +354,7 @@
                         </div>
 
                         <!-- Horizon+ Locked Module: Advanced Logs -->
-                        <div class="module-card locked">
+                        <div id="mod-logs" class="module-card locked">
                             <div class="plus-badge">Horizon+ Only</div>
                             <div class="module-title">📋 Extended Audit Logs</div>
                             <p class="module-desc">Deep logging archives for every message edit, deletion, and role change.</p>
@@ -390,6 +390,7 @@
         }
 
         let userGuildsData = [];
+        let plusServersList = [];
 
         window.onload = async () => {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
@@ -414,52 +415,37 @@
                     headers: { authorization: `Bearer ${token}` }
                 });
                 if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
-                const userGuilds = await guildsRes.json();
+                userGuildsData = await guildsRes.json();
 
-                // Filter servers where user is explicit owner
-                const ownedGuilds = userGuilds.filter(guild => guild.owner === true);
+                // Filter servers where user is explicit owner and bot is present (Discord shared guilds)
+                const ownedGuilds = userGuildsData.filter(guild => guild.owner === true);
 
                 if (ownedGuilds.length === 0) {
                     alert("You do not own any Discord servers.");
                     return;
                 }
 
-                // 2. Fetch plus.json database from your repository/backend directory
-                let plusServerIds = [];
+                // 2. Fetch plus.json database to check for Horizon+ subscriptions
                 try {
-                    const plusRes = await fetch('../plus.json'); // Adjust path relative to owner-panel folder if needed
+                    const plusRes = await fetch('../plus.json');
                     if (plusRes.ok) {
                         const plusData = await plusRes.json();
-                        // Assuming plus.json stores an array of server IDs or objects containing guildId
-                        plusServerIds = Array.isArray(plusData) ? plusData : (plusData.servers || []);
+                        plusServersList = Array.isArray(plusData) ? plusData : (plusData.servers || []);
                     }
                 } catch (e) {
-                    console.warn("Could not load plus.json database directly. Ensure path is correct.", e);
+                    console.warn("Could not load plus.json database.", e);
                 }
-
-                // 3. Filter criteria: User must own it AND it must exist in plus.json database 
-                // (Note: Discord's standard user guilds endpoint returns servers both you and the bot share if permissions match, 
-                // or you can cross-verify against your bot shared configuration)
-                const eligibleGuilds = ownedGuilds.filter(guild => {
-                    // Check if server ID is listed inside plus.json
-                    const isPlus = plusServerIds.some(item => (typeof item === 'string' ? item === guild.id : item.guildId === guild.id));
-                    return isPlus;
-                });
-
-                userGuildsData = eligibleGuilds;
 
                 const selectElement = document.getElementById('server-select');
-                selectElement.innerHTML = '<option value="" disabled selected>-- Select an Eligible Server --</option>';
+                selectElement.innerHTML = '<option value="" disabled selected>-- Select Your Server --</option>';
 
-                if (eligibleGuilds.length === 0) {
-                    alert("No eligible servers found. Make sure you own the server, have the bot added, and have an active Horizon+ subscription in plus.json.");
-                    return;
-                }
-
-                eligibleGuilds.forEach(guild => {
+                ownedGuilds.forEach(guild => {
+                    const isPlus = plusServersList.some(item => (typeof item === 'string' ? item === guild.id : item.guildId === guild.id));
+                    
                     const option = document.createElement('option');
                     option.value = guild.id;
-                    option.textContent = `${guild.name} (Horizon+)`;
+                    option.dataset.hasPlus = isPlus ? "true" : "false";
+                    option.textContent = isPlus ? `${guild.name} (Horizon+)` : `${guild.name} (Horizon One)`;
                     selectElement.appendChild(option);
                 });
 
@@ -484,11 +470,35 @@
 
         function loadDashboard() {
             const selectElement = document.getElementById('server-select');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
             const selectedGuildId = selectElement.value;
             const selectedGuild = userGuildsData.find(g => g.id === selectedGuildId);
+            const hasPlus = selectedOption.dataset.hasPlus === "true";
 
             if (selectedGuild) {
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
+            }
+
+            // Dynamically lock or unlock Plus features based on plus.json status for this specific server
+            const verificationCard = document.getElementById('mod-verification');
+            const logsCard = document.getElementById('mod-logs');
+
+            if (hasPlus) {
+                verificationCard.classList.remove('locked');
+                verificationCard.querySelector('.plus-badge').style.display = 'none';
+                verificationCard.querySelector('input').removeAttribute('disabled');
+
+                logsCard.classList.remove('locked');
+                logsCard.querySelector('.plus-badge').style.display = 'none';
+                logsCard.querySelector('input').removeAttribute('disabled');
+            } else {
+                verificationCard.classList.add('locked');
+                verificationCard.querySelector('.plus-badge').style.display = 'block';
+                verificationCard.querySelector('input').setAttribute('disabled', 'true');
+
+                logsCard.classList.add('locked');
+                logsCard.querySelector('.plus-badge').style.display = 'block';
+                logsCard.querySelector('input').setAttribute('disabled', 'true');
             }
 
             document.getElementById('selector-section').classList.add('hidden');
