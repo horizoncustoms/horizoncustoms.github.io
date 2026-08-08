@@ -216,7 +216,7 @@
                 <p id="status-desc">Link your Roblox account securely using OpenID authentication to verify your profile with Horizon Customs.</p>
                 
                 <div id="action-area" class="cta-buttons">
-                    <a href="https://apis.roblox.com/oauth/v1/authorize?client_id=YOUR_ROBLOX_CLIENT_ID&redirect_uri=https://horizoncustoms.github.io/verification&response_type=code&scope=openid+profile" class="btn">🔗 Link Roblox Account</a>
+                    <a href="#" id="roblox-login-btn" class="btn">🔗 Link Roblox Account</a>
                 </div>
             </div>
 
@@ -232,21 +232,26 @@
 
     <script>
         // CHANGE THIS URL when you switch from local testing to AWS:
-        // Local testing: 'http://localhost:3000/api/verify'
-        // AWS production: 'http://YOUR_AWS_IP:3000/api/verify' (or your domain)
         const BACKEND_URL = 'http://localhost:3000/api/verify';
 
+        // Grab URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const authCode = urlParams.get('code');
+        const discordUserId = urlParams.get('discordId');
 
-        // Only run verification if the user just got redirected back from Roblox with a code
+        const clientId = "6144543399746861341";
+        const redirectUri = "https://horizoncustoms.github.io/verification";
+
         if (authCode) {
+            // Case 1: User returned from Roblox with an authorization code
             document.getElementById('status-title').innerText = "Processing Verification...";
             document.getElementById('status-desc').innerText = "Authenticating your Roblox account data, please wait...";
             document.getElementById('action-area').style.display = 'none';
             
-            // Send the code to your backend server
-            fetch(`${BACKEND_URL}?code=${authCode}`)
+            // Note: Roblox passes back the discord ID via the 'state' query parameter we set during login
+            const returnedDiscordId = urlParams.get('state');
+
+            fetch(`${BACKEND_URL}?code=${authCode}&state=${returnedDiscordId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -262,6 +267,14 @@
                     document.getElementById('status-title').innerText = "Connection Error";
                     document.getElementById('status-desc').innerText = "Could not reach the backend server.";
                 });
+        } else {
+            // Case 2: User opened the page normally (either via website button or bot link)
+            const targetDiscordId = discordUserId || "UNKNOWN_USER";
+            
+            // Build the Roblox OAuth link embedding the Discord ID inside 'state'
+            const robloxAuthUrl = `https://apis.roblox.com/oauth/v1/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid+profile&state=${targetDiscordId}`;
+            
+            document.getElementById('roblox-login-btn').href = robloxAuthUrl;
         }
     </script>
 </body>
