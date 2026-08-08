@@ -26,11 +26,12 @@
             text-align: center;
             max-width: 500px;
             width: 100%;
+            border-top: 4px solid #f67111;
         }
-        h1 { margin-bottom: 10px; color: #38bdf8; }
+        h1 { margin-bottom: 10px; color: #f67111; }
         p { color: #94a3b8; margin-bottom: 25px; }
         .btn {
-            background-color: #5865F2;
+            background-color: #f67111;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -42,7 +43,7 @@
             display: inline-block;
             transition: background 0.2s;
         }
-        .btn:hover { background-color: #4752C4; }
+        .btn:hover { background-color: #d45b09; }
         .hidden { display: none; }
         .guild-card {
             background: #334155;
@@ -50,6 +51,7 @@
             border-radius: 8px;
             margin-top: 15px;
             text-align: left;
+            border-left: 4px solid #f67111;
         }
         .error { color: #f87171; font-weight: bold; }
         .logout-btn {
@@ -83,7 +85,7 @@
         <div id="error-section" class="hidden">
             <h1>Access Denied</h1>
             <p class="error" id="error-message">You do not own any servers running Horizon One or authorization failed.</p>
-            <button class="btn" onclick="logout()">Try Again</button>
+            <button class="btn logout-btn" onclick="logout()">Try Again</button>
         </div>
     </div>
 
@@ -91,13 +93,14 @@
         // Your Discord Application Client ID
         const CLIENT_ID = '1530208568392028302'; 
         
-        // Dynamically assign redirect URI based on environment (Local vs GitHub Pages)
+        // Accurate URI assignment ensuring correct trailing paths for GitHub Pages / Localhost
         let REDIRECT_URI;
         const currentHost = window.location.hostname;
 
         if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
             REDIRECT_URI = window.location.origin + window.location.pathname;
         } else {
+            // Must precisely match the URI added in Discord Developer Portal
             REDIRECT_URI = 'https://horizoncustoms.github.io/horizon-one/owner-panel/';
         }
 
@@ -155,8 +158,8 @@
                     const card = document.createElement('div');
                     card.className = 'guild-card';
                     card.innerHTML = `
-                        <h3>👑 ${guild.name}</h3>
-                        <p style="margin:0; font-size: 14px; color: #38bdf8;">Status: Verified Server Owner</p>
+                        <h3 style="margin-top:0; color:#f67111;">👑 ${guild.name}</h3>
+                        <p style="margin:0; font-size: 14px; color: #cbd5e1;">Status: Verified Server Owner</p>
                     `;
                     guildContainer.appendChild(card);
                 });
