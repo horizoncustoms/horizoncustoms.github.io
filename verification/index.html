@@ -148,6 +148,8 @@
             font-size: 14px;
             transition: background 0.2s, transform 0.1s;
             display: inline-block;
+            cursor: pointer;
+            border: none;
         }
 
         .btn:hover {
@@ -229,22 +231,37 @@
     </div>
 
     <script>
-        // Check if Roblox sent back an authorization code in the URL parameters
+        // CHANGE THIS URL when you switch from local testing to AWS:
+        // Local testing: 'http://localhost:3000/api/verify'
+        // AWS production: 'http://YOUR_AWS_IP:3000/api/verify' (or your domain)
+        const BACKEND_URL = 'http://localhost:3000/api/verify';
+
         const urlParams = new URLSearchParams(window.location.search);
         const authCode = urlParams.get('code');
 
-        if (!authCode) {
-            // Alert the user that they weren't redirected properly from Roblox
-            alert("Error: You weren't redirected here properly from Roblox authentication.");
-            // Redirect them back to the main homepage
-            window.location.replace('/');
-        } else {
-            // Handle successful return from Roblox here (e.g., send code to backend)
+        // Only run verification if the user just got redirected back from Roblox with a code
+        if (authCode) {
             document.getElementById('status-title').innerText = "Processing Verification...";
             document.getElementById('status-desc').innerText = "Authenticating your Roblox account data, please wait...";
             document.getElementById('action-area').style.display = 'none';
             
-            // Example: You can now securely send `authCode` to your backend bot server via fetch()
+            // Send the code to your backend server
+            fetch(`${BACKEND_URL}?code=${authCode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('status-title').innerText = "Success!";
+                        document.getElementById('status-desc').innerText = data.message;
+                    } else {
+                        document.getElementById('status-title').innerText = "Verification Failed";
+                        document.getElementById('status-desc').innerText = data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('status-title').innerText = "Connection Error";
+                    document.getElementById('status-desc').innerText = "Could not reach the backend server.";
+                });
         }
     </script>
 </body>
