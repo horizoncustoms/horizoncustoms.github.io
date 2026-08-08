@@ -26,7 +26,6 @@
             flex-direction: column;
         }
 
-        /* Top orange bar */
         .top-bar {
             width: 100%;
             height: 6px;
@@ -37,14 +36,12 @@
             z-index: 1000;
         }
 
-        /* Layout Container */
         .app-layout {
             display: flex;
             flex: 1;
             margin-top: 6px;
         }
 
-        /* Sidebar Styling */
         sidebar {
             width: var(--sidebar-width);
             background-color: var(--card-bg);
@@ -104,7 +101,6 @@
             padding-top: 15px;
         }
 
-        /* Main Content Area */
         .main-content {
             margin-left: var(--sidebar-width);
             flex: 1;
@@ -166,11 +162,19 @@
             cursor: not-allowed;
         }
 
+        .btn-secondary {
+            background-color: #222;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333;
+        }
+
         .select-group {
             margin-bottom: 25px;
         }
 
-        select {
+        select, input[type="text"] {
             background-color: #1a1a1a;
             color: #ffffff;
             border: 1px solid var(--border-color);
@@ -181,9 +185,10 @@
             max-width: 400px;
             outline: none;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
 
-        select:focus {
+        select:focus, input[type="text"]:focus {
             border-color: var(--accent-orange);
         }
 
@@ -202,6 +207,9 @@
             border-radius: 8px;
             padding: 20px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: border-color 0.2s;
         }
 
@@ -238,12 +246,88 @@
             margin: 0 0 15px 0;
         }
 
+        .module-footer-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            margin-top: 10px;
+        }
+
         .toggle-switch {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-size: 13px;
             font-weight: 600;
+        }
+
+        .edit-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .edit-btn:hover {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal {
+            background-color: #161b22;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            text-align: left;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .modal h3 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.4rem;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .modal .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
         }
 
         .hidden { display: none !important; }
@@ -325,46 +409,92 @@
                     <button id="continue-btn" class="btn" disabled onclick="loadDashboard()">Continue</button>
                 </div>
 
-                <!-- 3. Dyno-style Modules Dashboard View -->
+                <!-- 3. Dashboard View -->
                 <div id="dashboard-section" class="hidden">
                     <h1 id="dashboard-server-name">Managing Server</h1>
-                    <p>Configure automated moderation, security systems, and bot features.</p>
+                    <p>Configure automated security systems, channel hooks, and bot features.</p>
 
                     <div class="modules-grid">
-                        <!-- Free Module: Anti-Nuke -->
+                        <!-- Module 1: Anti-Nuke -->
                         <div class="module-card">
-                            <div class="module-title">🛡️ Anti-Nuke Protection</div>
-                            <p class="module-desc">Detects and blocks mass channel deletions, unauthorized ban spikes, and raider alerts.</p>
-                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
+                            <div>
+                                <div class="module-title">🛡️ Anti-Nuke Protection</div>
+                                <p class="module-desc">Detects and blocks mass channel deletions, unauthorized ban spikes, and raider alerts.</p>
+                            </div>
+                            <div class="module-footer-action">
+                                <div class="toggle-switch"><input type="checkbox" checked> Active</div>
+                                <button class="edit-btn" onclick="openConfigModal('antinuke')">Edit Settings</button>
+                            </div>
                         </div>
 
-                        <!-- Free Module: Anti-Spam -->
+                        <!-- Module 2: Anti-Spam -->
                         <div class="module-card">
-                            <div class="module-title">💬 Anti-Spam & Links</div>
-                            <p class="module-desc">Deletes mass message spam and unauthorized invite links automatically.</p>
-                            <div class="toggle-switch"><input type="checkbox" checked> Active Module</div>
+                            <div>
+                                <div class="module-title">💬 Anti-Spam & Links</div>
+                                <p class="module-desc">Deletes mass message spam and unauthorized invite links automatically.</p>
+                            </div>
+                            <div class="module-footer-action">
+                                <div class="toggle-switch"><input type="checkbox" checked> Active</div>
+                                <button class="edit-btn" onclick="openConfigModal('antispam')">Edit Settings</button>
+                            </div>
                         </div>
 
-                        <!-- Horizon+ Locked Module: Verification -->
+                        <!-- Module 3: Honeypot Protection -->
+                        <div class="module-card">
+                            <div>
+                                <div class="module-title">🍯 Honeypot Trap</div>
+                                <p class="module-desc">Creates a hidden trap channel that instantly bans any unauthorized user who accesses it.</p>
+                            </div>
+                            <div class="module-footer-action">
+                                <div class="toggle-switch"><input type="checkbox" checked> Active</div>
+                                <button class="edit-btn" onclick="openConfigModal('honeypot')">Edit Settings</button>
+                            </div>
+                        </div>
+
+                        <!-- Module 4: Verification (Horizon+ Only) -->
                         <div id="mod-verification" class="module-card locked">
                             <div class="plus-badge">Horizon+ Only</div>
-                            <div class="module-title">✅ Advanced Verification</div>
-                            <p class="module-desc">Custom web-based button verification gating to prevent bot raids.</p>
-                            <div class="toggle-switch"><input type="checkbox" disabled> Locked</div>
+                            <div>
+                                <div class="module-title">✅ Advanced Verification</div>
+                                <p class="module-desc">Custom web-based button verification gating to prevent bot raids.</p>
+                            </div>
+                            <div class="module-footer-action">
+                                <div class="toggle-switch"><input type="checkbox" disabled> Active</div>
+                                <button class="edit-btn" onclick="openConfigModal('verification')">Edit Settings</button>
+                            </div>
                         </div>
 
-                        <!-- Horizon+ Locked Module: Advanced Logs -->
+                        <!-- Module 5: Extended Audit Logs (Horizon+ Only) -->
                         <div id="mod-logs" class="module-card locked">
                             <div class="plus-badge">Horizon+ Only</div>
-                            <div class="module-title">📋 Extended Audit Logs</div>
-                            <p class="module-desc">Deep logging archives for every message edit, deletion, and role change.</p>
-                            <div class="toggle-switch"><input type="checkbox" disabled> Locked</div>
+                            <div>
+                                <div class="module-title">📋 Extended Audit Logs</div>
+                                <p class="module-desc">Deep logging archives for every message edit, deletion, and role change.</p>
+                            </div>
+                            <div class="module-footer-action">
+                                <div class="toggle-switch"><input type="checkbox" disabled> Active</div>
+                                <button class="edit-btn" onclick="openConfigModal('logs')">Edit Settings</button>
+                            </div>
                         </div>
                     </div>
 
-                    <button class="btn btn-secondary" style="background:#222; margin-right: 10px;" onclick="location.reload()">Switch Server</button>
+                    <button class="btn btn-secondary" onclick="location.reload()">Switch Server</button>
                 </div>
 
+            </div>
+
+            <!-- Configuration Modal Container -->
+            <div id="config-modal" class="modal-overlay hidden">
+                <div class="modal">
+                    <h3 id="modal-title">Configure Module</h3>
+                    <div id="modal-body">
+                        <!-- Dynamic inputs injected here -->
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
+                        <button class="btn" onclick="saveConfigModal()">Save Changes</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Footer -->
@@ -391,6 +521,16 @@
 
         let userGuildsData = [];
         let plusServersList = [];
+        let activeConfigModule = '';
+
+        // Mock channel lists (In production, fetch real server channels via your bot/Discord API)
+        const mockServerChannels = [
+            { id: '1001', name: '📢│announcements' },
+            { id: '1002', name: '💬│general-chat' },
+            { id: '1003', name: '🛡️│security-logs' },
+            { id: '1004', name: '🔒│secret-honeypot-trap' },
+            { id: '1005', name: '✅│verification-portal' }
+        ];
 
         window.onload = async () => {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
@@ -410,14 +550,12 @@
 
         async function fetchUserData(token) {
             try {
-                // 1. Fetch user's guilds from Discord
                 const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
                     headers: { authorization: `Bearer ${token}` }
                 });
                 if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
                 userGuildsData = await guildsRes.json();
 
-                // Filter servers where user is explicit owner and bot is present (Discord shared guilds)
                 const ownedGuilds = userGuildsData.filter(guild => guild.owner === true);
 
                 if (ownedGuilds.length === 0) {
@@ -425,7 +563,6 @@
                     return;
                 }
 
-                // 2. Fetch plus.json database to check for Horizon+ subscriptions
                 try {
                     const plusRes = await fetch('../plus.json');
                     if (plusRes.ok) {
@@ -479,7 +616,6 @@
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
             }
 
-            // Dynamically lock or unlock Plus features based on plus.json status for this specific server
             const verificationCard = document.getElementById('mod-verification');
             const logsCard = document.getElementById('mod-logs');
 
@@ -503,6 +639,93 @@
 
             document.getElementById('selector-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
+        }
+
+        // Modal Controls for Module Settings & Channel Selection
+        function openConfigModal(moduleKey) {
+            activeConfigModule = moduleKey;
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = '';
+
+            let channelOptionsHtml = mockServerChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            if (moduleKey === 'antinuke') {
+                modalTitle.innerText = 'Configure Anti-Nuke';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Alert Log Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Channel Deletions per Minute</label>
+                        <input type="text" id="cfg-threshold" value="3">
+                    </div>
+                `;
+            } else if (moduleKey === 'antispam') {
+                modalTitle.innerText = 'Configure Anti-Spam';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Infraction Logging Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Action on Spam</label>
+                        <select id="cfg-action">
+                            <option value="delete">Delete Message Only</option>
+                            <option value="timeout">Delete & Timeout User</option>
+                        </select>
+                    </div>
+                `;
+            } else if (moduleKey === 'honeypot') {
+                modalTitle.innerText = 'Configure Honeypot Trap';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Select Trap Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Punishment on Entry</label>
+                        <select id="cfg-punishment">
+                            <option value="ban">Instant Ban</option>
+                            <option value="kick">Instant Kick</option>
+                        </select>
+                    </div>
+                `;
+            } else if (moduleKey === 'verification') {
+                modalTitle.innerText = 'Configure Verification (Horizon+)';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Verification Portal Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Role After Success</label>
+                        <input type="text" id="cfg-role" value="Verified Members">
+                    </div>
+                `;
+            } else if (moduleKey === 'logs') {
+                modalTitle.innerText = 'Configure Extended Audit Logs (Horizon+)';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Archive Output Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                `;
+            }
+
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').classList.add('hidden');
+        }
+
+        function saveConfigModal() {
+            // Here you can collect values from elements like document.getElementById('cfg-channel').value 
+            // and send them to your backend database or bot configuration handler.
+            alert(`Settings saved successfully for ${activeConfigModule}!`);
+            closeConfigModal();
         }
     </script>
 </body>
