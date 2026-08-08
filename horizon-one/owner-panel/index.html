@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon One - Server Owner Panel</title>
+    <style>
+        :root {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { margin-bottom: 10px; color: #38bdf8; }
+        p { color: #94a3b8; margin-bottom: 25px; }
+        .btn {
+            background-color: #5865F2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #4752C4; }
+        .hidden { display: none; }
+        .guild-card {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .error { color: #f87171; font-weight: bold; }
+        .logout-btn {
+            background-color: #ef4444;
+            margin-top: 20px;
+        }
+        .logout-btn:hover { background-color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Login Section -->
+        <div id="login-section">
+            <h1>Horizon One Owner Panel</h1>
+            <p>Verify your Discord account ownership to access server configurations and security logs.</p>
+            <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
+        </div>
+
+        <!-- Dashboard Panel Section -->
+        <div id="panel-section" class="hidden">
+            <h1>Welcome, <span id="username">User</span>!</h1>
+            <p>Authenticated Server Ownership Panel</p>
+            <div id="guild-container">
+                <!-- Dynamically populated server ownership details -->
+            </div>
+            <button class="btn logout-btn" onclick="logout()">Log Out</button>
+        </div>
+
+        <!-- Error Section -->
+        <div id="error-section" class="hidden">
+            <h1>Access Denied</h1>
+            <p class="error" id="error-message">You do not own any servers running Horizon One or authorization failed.</p>
+            <button class="btn" onclick="logout()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Your Discord Application Client ID
+        const CLIENT_ID = '1530208568392028302'; 
+        
+        // Dynamically assign redirect URI based on environment (Local vs GitHub Pages)
+        let REDIRECT_URI;
+        const currentHost = window.location.hostname;
+
+        if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+            REDIRECT_URI = window.location.origin + window.location.pathname;
+        } else {
+            REDIRECT_URI = 'https://horizoncustoms.github.io/horizon-one/owner-panel/';
+        }
+
+        window.onload = async () => {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const accessToken = fragment.get('access_token');
+
+            if (accessToken) {
+                localStorage.setItem('discord_token', accessToken);
+                window.location.hash = ''; // Clear token from URL bar
+                fetchUserData(accessToken);
+            } else {
+                const savedToken = localStorage.getItem('discord_token');
+                if (savedToken) {
+                    fetchUserData(savedToken);
+                }
+            }
+        };
+
+        function loginWithDiscord() {
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify%20guilds`;
+            window.location.href = authUrl;
+        }
+
+        async function fetchUserData(token) {
+            try {
+                // Fetch User Identity Profile
+                const userRes = await fetch('https://discord.com/api/users/@me', {
+                    headers: { authorization: `Bearer ${token}` }
+                });
+                if (!userRes.ok) throw new Error('Failed to fetch user data');
+                const userData = await userRes.json();
+
+                document.getElementById('username').innerText = userData.username;
+
+                // Fetch User Guilds to evaluate ownership status
+                const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
+                    headers: { authorization: `Bearer ${token}` }
+                });
+                if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
+                const guildsData = await guildsRes.json();
+
+                // Filter guilds where the authenticated user has explicit ownership
+                const ownedGuilds = guildsData.filter(guild => guild.owner === true);
+
+                const guildContainer = document.getElementById('guild-container');
+                guildContainer.innerHTML = '';
+
+                if (ownedGuilds.length === 0) {
+                    showError("Access Denied: You must be the explicit Owner of at least one server to view this dashboard.");
+                    return;
+                }
+
+                ownedGuilds.forEach(guild => {
+                    const card = document.createElement('div');
+                    card.className = 'guild-card';
+                    card.innerHTML = `
+                        <h3>👑 ${guild.name}</h3>
+                        <p style="margin:0; font-size: 14px; color: #38bdf8;">Status: Verified Server Owner</p>
+                    `;
+                    guildContainer.appendChild(card);
+                });
+
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('error-section').classList.add('hidden');
+                document.getElementById('panel-section').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                logout();
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('panel-section').classList.add('hidden');
+            document.getElementById('error-section').classList.remove('hidden');
+            document.getElementById('error-message').innerText = msg;
+        }
+
+        function logout() {
+            localStorage.removeItem('discord_token');
+            window.location.href = REDIRECT_URI;
+        }
+    </script>
+</body>
+</html>
