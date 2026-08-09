@@ -369,7 +369,7 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/">Home</a></li>
-                <li><a href="/horizon-one/owner-panel/" class="active">Owner Panel</a></li>
+                <li><a href="#" class="active">Owner Panel</a></li>
                 <li><a href="https://discord.gg/UdAKT57TK9" target="_blank">Discord Server</a></li>
             </ul>
             <div class="sidebar-footer">
@@ -441,7 +441,7 @@
 
     <script>
         const CLIENT_ID = '1530208568392028302'; 
-        const BACKEND_URL = 'http://localhost:3000'; // Change to your deployed backend URL in production
+        const BACKEND_URL = 'http://localhost:3000'; 
         
         let REDIRECT_URI;
         const currentHost = window.location.hostname;
@@ -523,7 +523,6 @@
             const selectedGuild = userGuildsData.find(g => g.id === currentSelectedGuildId);
 
             try {
-                // Fetch channels and plus status directly via the backend API
                 const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/channels`);
                 if (res.ok) {
                     const data = await res.json();
@@ -539,7 +538,7 @@
             if (selectedGuild) {
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
                 document.getElementById('dashboard-subtitle').innerText = isCurrentServerPlus 
-                    ? "Horizon+ Active: Advanced features & custom modules unlocked." 
+                    ? "Horizon+ Active: Per-server nitro profile branding & advanced features unlocked." 
                     : "Standard Horizon One Server Panel.";
             }
 
@@ -559,8 +558,8 @@
                 modulesToRender = [
                     {
                         key: 'customization',
-                        title: '🎨 Horizon+ Customization',
-                        desc: 'Tailor custom embeds, bot branding accents, and dynamic server greeting layouts.',
+                        title: '🎨 Horizon+ Bot Profile',
+                        desc: 'Customize per-server bot nickname, profile picture, banner, and bio layout like Nitro.',
                         badge: 'Horizon+'
                     },
                     {
@@ -632,19 +631,23 @@
             }).join('');
 
             if (moduleKey === 'customization') {
-                modalTitle.innerText = 'Horizon+ Customization';
+                modalTitle.innerText = 'Horizon+ Per-Server Bot Profile';
                 modalBody.innerHTML = `
                     <div class="form-group">
-                        <label>Target Channel</label>
-                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                        <label>Custom Server Nickname</label>
+                        <input type="text" id="cfg-nickname" value="Horizon One">
                     </div>
                     <div class="form-group">
-                        <label>Custom Embed Title</label>
-                        <input type="text" id="cfg-embed-title" value="Horizon+ Secure Gateway">
+                        <label>Custom Profile Picture URL</label>
+                        <input type="text" id="cfg-avatar" placeholder="https://example.com/avatar.png">
                     </div>
                     <div class="form-group">
-                        <label>Welcome Description Text</label>
-                        <textarea id="cfg-embed-desc" rows="3">Welcome to the server! Please review our rules.</textarea>
+                        <label>Custom Banner URL</label>
+                        <input type="text" id="cfg-banner" placeholder="https://example.com/banner.png">
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Bio / About Me</label>
+                        <textarea id="cfg-bio" rows="2" placeholder="Custom bot bio for this server..."></textarea>
                     </div>
                 `;
             } else if (moduleKey === 'antinuke') {
@@ -704,18 +707,22 @@
         }
 
         async function saveConfigModal() {
-            const channelId = document.getElementById('cfg-channel').value;
-            let configData = { channelId };
+            let configData = {};
 
             if (activeConfigModule === 'customization') {
-                configData.embedTitle = document.getElementById('cfg-embed-title').value;
-                configData.embedDesc = document.getElementById('cfg-embed-desc').value;
-            } else if (activeConfigModule === 'antinuke') {
-                configData.threshold = document.getElementById('cfg-threshold').value;
-            } else if (activeConfigModule === 'antispam') {
-                configData.action = document.getElementById('cfg-action').value;
-            } else if (activeConfigModule === 'verification') {
-                configData.role = document.getElementById('cfg-role').value;
+                configData.nickname = document.getElementById('cfg-nickname').value;
+                configData.avatarUrl = document.getElementById('cfg-avatar').value;
+                configData.bannerUrl = document.getElementById('cfg-banner').value;
+                configData.bio = document.getElementById('cfg-bio').value;
+            } else {
+                configData.channelId = document.getElementById('cfg-channel').value;
+                if (activeConfigModule === 'antinuke') {
+                    configData.threshold = document.getElementById('cfg-threshold').value;
+                } else if (activeConfigModule === 'antispam') {
+                    configData.action = document.getElementById('cfg-action').value;
+                } else if (activeConfigModule === 'verification') {
+                    configData.role = document.getElementById('cfg-role').value;
+                }
             }
 
             try {
