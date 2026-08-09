@@ -226,6 +226,12 @@
             transition: border-color 0.2s;
         }
 
+        .module-card.locked {
+            opacity: 0.45;
+            background-color: #111317;
+            border-style: dashed;
+        }
+
         .plus-badge {
             position: absolute;
             top: 15px;
@@ -238,6 +244,11 @@
             border-radius: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .plus-badge.locked-badge {
+            background-color: #333333;
+            color: #aaaaaa;
         }
 
         .module-title {
@@ -282,9 +293,15 @@
             transition: all 0.2s;
         }
 
-        .edit-btn:hover {
+        .edit-btn:hover:not(:disabled) {
             border-color: var(--accent-orange);
             color: var(--accent-orange);
+        }
+
+        .edit-btn:disabled {
+            border-color: #222;
+            color: #555;
+            cursor: not-allowed;
         }
 
         .modal-overlay {
@@ -476,12 +493,10 @@
             const accessTokenFromUrl = fragment.get('access_token');
 
             if (accessTokenFromUrl) {
-                // Save token locally so user stays logged in on this device
                 localStorage.setItem('discord_token', accessTokenFromUrl);
-                window.location.hash = ''; // Clean up URL hash
+                window.location.hash = '';
                 fetchUserData(accessTokenFromUrl);
             } else {
-                // Check if a token is already saved from a previous visit on this device
                 const savedToken = localStorage.getItem('discord_token');
                 if (savedToken) {
                     fetchUserData(savedToken);
@@ -501,7 +516,6 @@
                 });
 
                 if (!guildsRes.ok) {
-                    // Token expired or invalid, clear storage and show login
                     throw new Error('Token expired or invalid');
                 }
 
@@ -524,9 +538,7 @@
                     selectElement.appendChild(option);
                 });
 
-                // Show logout button in sidebar since user is logged in
                 document.getElementById('logout-btn').classList.remove('hidden');
-
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('selector-section').classList.remove('hidden');
 
@@ -541,7 +553,7 @@
 
         function logoutSession() {
             localStorage.removeItem('discord_token');
-            window.location.href = REDIRECT_URI; // Reset to clean state
+            window.location.href = REDIRECT_URI;
         }
 
         function handleServerSelection() {
@@ -576,7 +588,7 @@
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
                 document.getElementById('dashboard-subtitle').innerText = isCurrentServerPlus 
                     ? "Horizon+ Active: Per-server nitro profile branding & advanced features unlocked." 
-                    : "Standard Horizon One Server Panel.";
+                    : "Standard Horizon One Server Panel. Upgrade to Horizon+ to unlock advanced features.";
             }
 
             renderModules();
@@ -596,55 +608,70 @@
             const container = document.getElementById('modules-container');
             container.innerHTML = '';
 
-            let modulesToRender = [];
+            // Master list of all modules, marking which ones require Horizon+
+            const allModules = [
+                {
+                    key: 'antinuke',
+                    title: '🛡️ Anti-Nuke Protection',
+                    desc: 'Detects and blocks mass channel deletions and unauthorized ban spikes.',
+                    requiresPlus: false
+                },
+                {
+                    key: 'antispam',
+                    title: '💬 Anti-Spam & Links',
+                    desc: 'Deletes mass message spam and unauthorized invite links automatically.',
+                    requiresPlus: false
+                },
+                {
+                    key: 'customization',
+                    title: '🎨 Horizon+ Bot Profile',
+                    desc: 'Customize per-server bot nickname, profile picture, banner, and bio layout like Nitro.',
+                    requiresPlus: true
+                },
+                {
+                    key: 'verification',
+                    title: '✅ Advanced Verification',
+                    desc: 'Custom web-based button verification gating to prevent bot raids.',
+                    requiresPlus: true
+                },
+                {
+                    key: 'logs',
+                    title: '📋 Extended Audit Logs',
+                    desc: 'Deep logging archives for every message edit, deletion, and role change.',
+                    requiresPlus: true
+                },
+                {
+                    key: 'antinuke-plus',
+                    title: '🛡️ Advanced Anti-Nuke Plus',
+                    desc: 'Strict multi-layer safeguard against mass bans, webhook spam, and structural wipes.',
+                    requiresPlus: true
+                }
+            ];
 
-            if (isCurrentServerPlus) {
-                modulesToRender = [
-                    {
-                        key: 'customization',
-                        title: '🎨 Horizon+ Bot Profile',
-                        desc: 'Customize per-server bot nickname, profile picture, banner, and bio layout like Nitro.',
-                        badge: 'Horizon+'
-                    },
-                    {
-                        key: 'verification',
-                        title: '✅ Advanced Verification',
-                        desc: 'Custom web-based button verification gating to prevent bot raids.',
-                        badge: 'Horizon+'
-                    },
-                    {
-                        key: 'logs',
-                        title: '📋 Extended Audit Logs',
-                        desc: 'Deep logging archives for every message edit, deletion, and role change.',
-                        badge: 'Horizon+'
-                    },
-                    {
-                        key: 'antinuke',
-                        title: '🛡️ Advanced Anti-Nuke Plus',
-                        desc: 'Strict multi-layer safeguard against mass bans, webhook spam, and structural wipes.',
-                        badge: 'Horizon+'
-                    }
-                ];
-            } else {
-                modulesToRender = [
-                    {
-                        key: 'antinuke',
-                        title: '🛡️ Anti-Nuke Protection',
-                        desc: 'Detects and blocks mass channel deletions and unauthorized ban spikes.'
-                    },
-                    {
-                        key: 'antispam',
-                        title: '💬 Anti-Spam & Links',
-                        desc: 'Deletes mass message spam and unauthorized invite links automatically.'
-                    }
-                ];
-            }
-
-            modulesToRender.forEach(mod => {
+            allModules.forEach(mod => {
+                const isLocked = mod.requiresPlus && !isCurrentServerPlus;
                 const card = document.createElement('div');
-                card.className = 'module-card';
+                card.className = `module-card ${isLocked ? 'locked' : ''}`;
                 
-                let badgeHtml = mod.badge ? `<div class="plus-badge">${mod.badge}</div>` : '';
+                let badgeHtml = '';
+                if (mod.requiresPlus) {
+                    badgeHtml = isLocked 
+                        ? `<div class="plus-badge locked-badge">Horizon+ Locked</div>` 
+                        : `<div class="plus-badge">Horizon+ Active</div>`;
+                }
+
+                let footerHtml = '';
+                if (isLocked) {
+                    footerHtml = `
+                        <div class="toggle-switch" style="color: #666;">Requires Horizon+</div>
+                        <button class="edit-btn" disabled>Upgrade to Unlock</button>
+                    `;
+                } else {
+                    footerHtml = `
+                        <div class="toggle-switch"><input type="checkbox" checked> Active</div>
+                        <button class="edit-btn" onclick="openConfigModal('${mod.key}')">Edit Settings</button>
+                    `;
+                }
 
                 card.innerHTML = `
                     ${badgeHtml}
@@ -653,8 +680,7 @@
                         <p class="module-desc">${mod.desc}</p>
                     </div>
                     <div class="module-footer-action">
-                        <div class="toggle-switch"><input type="checkbox" checked> Active</div>
-                        <button class="edit-btn" onclick="openConfigModal('${mod.key}')">Edit Settings</button>
+                        ${footerHtml}
                     </div>
                 `;
                 container.appendChild(card);
@@ -694,8 +720,8 @@
                         <textarea id="cfg-bio" rows="2" placeholder="Custom bot bio for this server..."></textarea>
                     </div>
                 `;
-            } else if (moduleKey === 'antinuke') {
-                modalTitle.innerText = 'Configure Anti-Nuke';
+            } else if (moduleKey === 'antinuke' || moduleKey === 'antinuke-plus') {
+                modalTitle.innerText = moduleKey === 'antinuke-plus' ? 'Configure Advanced Anti-Nuke' : 'Configure Anti-Nuke';
                 modalBody.innerHTML = `
                     <div class="form-group">
                         <label>Target Channel</label>
@@ -760,7 +786,7 @@
                 configData.bio = document.getElementById('cfg-bio').value;
             } else {
                 configData.channelId = document.getElementById('cfg-channel').value;
-                if (activeConfigModule === 'antinuke') {
+                if (activeConfigModule === 'antinuke' || activeConfigModule === 'antinuke-plus') {
                     configData.threshold = document.getElementById('cfg-threshold').value;
                 } else if (activeConfigModule === 'antispam') {
                     configData.action = document.getElementById('cfg-action').value;
