@@ -174,7 +174,7 @@
             margin-bottom: 25px;
         }
 
-        select, input[type="text"] {
+        select, input[type="text"], textarea {
             background-color: #1a1a1a;
             color: #ffffff;
             border: 1px solid var(--border-color);
@@ -188,7 +188,7 @@
             box-sizing: border-box;
         }
 
-        select:focus, input[type="text"]:focus {
+        select:focus, input[type="text"]:focus, textarea:focus {
             border-color: var(--accent-orange);
         }
 
@@ -441,6 +441,7 @@
 
     <script>
         const CLIENT_ID = '1530208568392028302'; 
+        const BACKEND_URL = 'http://localhost:3000'; // Change to your deployed backend URL in production
         
         let REDIRECT_URI;
         const currentHost = window.location.hostname;
@@ -451,7 +452,6 @@
         }
 
         let userGuildsData = [];
-        let plusServersList = [];
         let currentSelectedGuildId = null;
         let isCurrentServerPlus = false;
         let serverChannels = [];
@@ -488,26 +488,13 @@
                     return;
                 }
 
-                try {
-                    const plusRes = await fetch('../plus.json');
-                    if (plusRes.ok) {
-                        const plusData = await plusRes.json();
-                        plusServersList = Array.isArray(plusData) ? plusData : (plusData.servers || []);
-                    }
-                } catch (e) {
-                    console.warn("Could not load plus.json database.", e);
-                }
-
                 const selectElement = document.getElementById('server-select');
                 selectElement.innerHTML = '<option value="" disabled selected>-- Select Your Server --</option>';
 
                 ownedGuilds.forEach(guild => {
-                    const isPlus = plusServersList.some(item => (typeof item === 'string' ? item === guild.id : item.guildId === guild.id));
-                    
                     const option = document.createElement('option');
                     option.value = guild.id;
-                    option.dataset.hasPlus = isPlus ? "true" : "false";
-                    option.textContent = isPlus ? `${guild.name} (Horizon+)` : `${guild.name} (Horizon One)`;
+                    option.textContent = guild.name;
                     selectElement.appendChild(option);
                 });
 
@@ -532,37 +519,28 @@
 
         async function loadDashboard() {
             const selectElement = document.getElementById('server-select');
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
             currentSelectedGuildId = selectElement.value;
             const selectedGuild = userGuildsData.find(g => g.id === currentSelectedGuildId);
-            isCurrentServerPlus = selectedOption.dataset.hasPlus === "true";
+
+            try {
+                // Fetch channels and plus status directly via the backend API
+                const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/channels`);
+                if (res.ok) {
+                    const data = await res.json();
+                    serverChannels = data.channels;
+                    isCurrentServerPlus = data.isPlus;
+                }
+            } catch (e) {
+                console.warn("Could not reach backend API for channels. Using fallback.", e);
+                serverChannels = [{ id: 'fallback_1', name: 'horizon-one' }];
+                isCurrentServerPlus = false;
+            }
 
             if (selectedGuild) {
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
                 document.getElementById('dashboard-subtitle').innerText = isCurrentServerPlus 
                     ? "Horizon+ Active: Advanced features & custom modules unlocked." 
                     : "Standard Horizon One Server Panel.";
-            }
-
-            try {
-                const token = localStorage.getItem('discord_token');
-                const channelsRes = await fetch(`https://discord.com/api/guilds/${currentSelectedGuildId}/channels`, {
-                    headers: { authorization: `Bearer ${token}` }
-                });
-                if (channelsRes.ok) {
-                    const rawChannels = await channelsRes.json();
-                    serverChannels = rawChannels.filter(c => c.type === 0);
-                }
-            } catch (e) {
-                console.warn("Could not fetch guild channels directly via client token. Using defaults.", e);
-            }
-
-            if (!serverChannels || serverChannels.length === 0) {
-                serverChannels = [
-                    { id: 'default_1', name: 'horizon-one' },
-                    { id: 'default_2', name: 'general' },
-                    { id: 'default_3', name: 'security-logs' }
-                ];
             }
 
             renderModules();
@@ -578,8 +556,13 @@
             let modulesToRender = [];
 
             if (isCurrentServerPlus) {
-                // Show only Horizon+ options when plus is active
                 modulesToRender = [
+                    {
+                        key: 'customization',
+                        title: '🎨 Horizon+ Customization',
+                        desc: 'Tailor custom embeds, bot branding accents, and dynamic server greeting layouts.',
+                        badge: 'Horizon+'
+                    },
                     {
                         key: 'verification',
                         title: '✅ Advanced Verification',
@@ -597,16 +580,9 @@
                         title: '🛡️ Advanced Anti-Nuke Plus',
                         desc: 'Strict multi-layer safeguard against mass bans, webhook spam, and structural wipes.',
                         badge: 'Horizon+'
-                    },
-                    {
-                        key: 'honeypot',
-                        title: '🍯 Elite Honeypot Trap',
-                        desc: 'Secret decoy triggers that instantly lock down and ban malicious actors on entry.',
-                        badge: 'Horizon+'
                     }
                 ];
             } else {
-                // Show standard modules
                 modulesToRender = [
                     {
                         key: 'antinuke',
@@ -617,11 +593,6 @@
                         key: 'antispam',
                         title: '💬 Anti-Spam & Links',
                         desc: 'Deletes mass message spam and unauthorized invite links automatically.'
-                    },
-                    {
-                        key: 'honeypot',
-                        title: '🍯 Honeypot Trap',
-                        desc: 'Creates a hidden trap channel that flags any user who accesses it.'
                     }
                 ];
             }
@@ -653,7 +624,6 @@
             const modalBody = document.getElementById('modal-body');
             modalBody.innerHTML = '';
 
-            // The default channel MUST always target 'horizon-one' regardless of plus status
             const defaultChannelQuery = 'horizon-one';
 
             let channelOptionsHtml = serverChannels.map(c => {
@@ -661,11 +631,27 @@
                 return `<option value="${c.id}" ${isDefault}>#${c.name}</option>`;
             }).join('');
 
-            if (moduleKey === 'antinuke') {
+            if (moduleKey === 'customization') {
+                modalTitle.innerText = 'Horizon+ Customization';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Target Channel</label>
+                        <select id="cfg-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Embed Title</label>
+                        <input type="text" id="cfg-embed-title" value="Horizon+ Secure Gateway">
+                    </div>
+                    <div class="form-group">
+                        <label>Welcome Description Text</label>
+                        <textarea id="cfg-embed-desc" rows="3">Welcome to the server! Please review our rules.</textarea>
+                    </div>
+                `;
+            } else if (moduleKey === 'antinuke') {
                 modalTitle.innerText = 'Configure Anti-Nuke';
                 modalBody.innerHTML = `
                     <div class="form-group">
-                        <label>Default Channel</label>
+                        <label>Target Channel</label>
                         <select id="cfg-channel">${channelOptionsHtml}</select>
                     </div>
                     <div class="form-group">
@@ -677,7 +663,7 @@
                 modalTitle.innerText = 'Configure Anti-Spam';
                 modalBody.innerHTML = `
                     <div class="form-group">
-                        <label>Default Channel</label>
+                        <label>Target Channel</label>
                         <select id="cfg-channel">${channelOptionsHtml}</select>
                     </div>
                     <div class="form-group">
@@ -688,26 +674,11 @@
                         </select>
                     </div>
                 `;
-            } else if (moduleKey === 'honeypot') {
-                modalTitle.innerText = 'Configure Honeypot Trap';
-                modalBody.innerHTML = `
-                    <div class="form-group">
-                        <label>Default Channel</label>
-                        <select id="cfg-channel">${channelOptionsHtml}</select>
-                    </div>
-                    <div class="form-group">
-                        <label>Punishment</label>
-                        <select id="cfg-punishment">
-                            <option value="ban">Instant Ban</option>
-                            <option value="kick">Instant Kick</option>
-                        </select>
-                    </div>
-                `;
             } else if (moduleKey === 'verification') {
                 modalTitle.innerText = 'Configure Verification';
                 modalBody.innerHTML = `
                     <div class="form-group">
-                        <label>Default Channel</label>
+                        <label>Target Channel</label>
                         <select id="cfg-channel">${channelOptionsHtml}</select>
                     </div>
                     <div class="form-group">
@@ -719,7 +690,7 @@
                 modalTitle.innerText = 'Configure Extended Logs';
                 modalBody.innerHTML = `
                     <div class="form-group">
-                        <label>Default Channel</label>
+                        <label>Target Channel</label>
                         <select id="cfg-channel">${channelOptionsHtml}</select>
                     </div>
                 `;
@@ -732,10 +703,38 @@
             document.getElementById('config-modal').classList.add('hidden');
         }
 
-        function saveConfigModal() {
-            const selectedChannelId = document.getElementById('cfg-channel').value;
-            alert(`Configuration saved successfully for ${activeConfigModule}! Channel linked: ${selectedChannelId}`);
-            closeConfigModal();
+        async function saveConfigModal() {
+            const channelId = document.getElementById('cfg-channel').value;
+            let configData = { channelId };
+
+            if (activeConfigModule === 'customization') {
+                configData.embedTitle = document.getElementById('cfg-embed-title').value;
+                configData.embedDesc = document.getElementById('cfg-embed-desc').value;
+            } else if (activeConfigModule === 'antinuke') {
+                configData.threshold = document.getElementById('cfg-threshold').value;
+            } else if (activeConfigModule === 'antispam') {
+                configData.action = document.getElementById('cfg-action').value;
+            } else if (activeConfigModule === 'verification') {
+                configData.role = document.getElementById('cfg-role').value;
+            }
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ moduleKey: activeConfigModule, configData })
+                });
+
+                if (res.ok) {
+                    alert(`Configuration for ${activeConfigModule} successfully saved to backend!`);
+                    closeConfigModal();
+                } else {
+                    alert('Failed to save configuration.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to backend server.');
+            }
         }
     </script>
 </body>
