@@ -99,6 +99,19 @@
             color: var(--text-muted);
             border-top: 1px solid var(--border-color);
             padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .logout-link {
+            color: #ff5555;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .logout-link:hover {
+            text-decoration: underline;
         }
 
         .main-content {
@@ -373,7 +386,8 @@
                 <li><a href="https://discord.gg/UdAKT57TK9" target="_blank">Discord Server</a></li>
             </ul>
             <div class="sidebar-footer">
-                &copy; 2026 Horizon Customs
+                <a class="logout-link hidden" id="logout-btn" onclick="logoutSession()">Logout / Switch Account</a>
+                <div>&copy; 2026 Horizon Customs</div>
             </div>
         </sidebar>
 
@@ -411,7 +425,7 @@
                         <!-- Populated dynamically -->
                     </div>
 
-                    <button class="btn btn-secondary" onclick="location.reload()">Switch Server</button>
+                    <button class="btn btn-secondary" onclick="resetToServerSelector()">Switch Server</button>
                 </div>
 
             </div>
@@ -459,12 +473,19 @@
 
         window.onload = async () => {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
-            const accessToken = fragment.get('access_token');
+            const accessTokenFromUrl = fragment.get('access_token');
 
-            if (accessToken) {
-                localStorage.setItem('discord_token', accessToken);
-                window.location.hash = '';
-                fetchUserData(accessToken);
+            if (accessTokenFromUrl) {
+                // Save token locally so user stays logged in on this device
+                localStorage.setItem('discord_token', accessTokenFromUrl);
+                window.location.hash = ''; // Clean up URL hash
+                fetchUserData(accessTokenFromUrl);
+            } else {
+                // Check if a token is already saved from a previous visit on this device
+                const savedToken = localStorage.getItem('discord_token');
+                if (savedToken) {
+                    fetchUserData(savedToken);
+                }
             }
         };
 
@@ -478,13 +499,18 @@
                 const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
                     headers: { authorization: `Bearer ${token}` }
                 });
-                if (!guildsRes.ok) throw new Error('Failed to fetch guilds');
-                userGuildsData = await guildsRes.json();
 
+                if (!guildsRes.ok) {
+                    // Token expired or invalid, clear storage and show login
+                    throw new Error('Token expired or invalid');
+                }
+
+                userGuildsData = await guildsRes.json();
                 const ownedGuilds = userGuildsData.filter(guild => guild.owner === true);
 
                 if (ownedGuilds.length === 0) {
                     alert("You do not own any Discord servers.");
+                    logoutSession();
                     return;
                 }
 
@@ -498,13 +524,24 @@
                     selectElement.appendChild(option);
                 });
 
+                // Show logout button in sidebar since user is logged in
+                document.getElementById('logout-btn').classList.remove('hidden');
+
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('selector-section').classList.remove('hidden');
 
             } catch (err) {
                 console.error(err);
                 localStorage.removeItem('discord_token');
+                document.getElementById('logout-btn').classList.add('hidden');
+                document.getElementById('selector-section').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
             }
+        }
+
+        function logoutSession() {
+            localStorage.removeItem('discord_token');
+            window.location.href = REDIRECT_URI; // Reset to clean state
         }
 
         function handleServerSelection() {
@@ -546,6 +583,13 @@
 
             document.getElementById('selector-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
+        }
+
+        function resetToServerSelector() {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('selector-section').classList.remove('hidden');
+            document.getElementById('server-select').value = "";
+            document.getElementById('continue-btn').setAttribute('disabled', 'true');
         }
 
         function renderModules() {
