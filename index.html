@@ -1,119 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizon Customs | Official Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horizon Customs | Official Website</title>
 
-    <style>
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #121212;
-            --border-color: #222222;
-            --accent-orange: #ff8800;
-            --text-main: #c9d1d9;
-            --text-muted: #888888;
-            --sidebar-width: 260px;
-        }
+<style>
+:root {
+    --bg-color: #0d1117;
+    --card-bg: #121212;
+    --border-color: #222222;
+    --accent-orange: #ff8800;
+    --text-main: #c9d1d9;
+    --text-muted: #888888;
+    --sidebar-width: 260px;
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .top-bar {
-            width: 100%;
-            height: 6px;
-            background-color: var(--accent-orange);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+}
 
-        .app-layout {
-            display: flex;
-            flex: 1;
-            margin-top: 6px;
-        }
+.top-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--accent-orange);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
 
-        sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 30px 20px;
-            position: fixed;
-            height: calc(100vh - 6px);
-            box-sizing: border-box;
-        }
+.app-layout {
+    display: flex;
+    margin-top: 6px;
+}
 
-        .sidebar-brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+sidebar {
+    width: var(--sidebar-width);
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 30px 20px;
+    position: fixed;
+    height: calc(100vh - 6px);
+    display: flex;
+    flex-direction: column;
+}
 
-        .sidebar-brand span {
-            color: var(--accent-orange);
-        }
+.sidebar-brand {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
-        }
+.sidebar-brand span {
+    color: var(--accent-orange);
+}
 
-        .sidebar-menu a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 10px 15px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
+.sidebar-menu {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+}
 
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            color: #ffffff;
-            background-color: rgba(255, 136, 0, 0.1);
-            border-left: 3px solid var(--accent-orange);
-        }
+.sidebar-menu a {
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
 
-        .sidebar-footer {
-            font-size: 12px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            padding-top: 15px;
-        }
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background: rgba(255,136,0,0.1);
+    color: white;
+    border-left: 3px solid var(--accent-orange);
+}
 
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 50px;
-            box-sizing: border-box;
-        }
+.sidebar-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
 
-        .content-container {
-            max-width: 800px;
-            margin: auto;
-           
+.main-content {
+    margin-left: var(--sidebar-width);
+    width: 100%;
+    padding: 50px;
+}
+
+.section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 50px;
+    max-width: 900px;
+    margin: auto auto 30px auto;
+}
+
+.hero {
+    text-align: center;
+}
+
+.hero h1 {
+    color: white;
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--accent-orange);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #e47800;
+}
+
+.btn-secondary {
+    background: #1b1b1b;
+    color: white;
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: #252525;
+}
+
+.section-card h2 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.section-card p {
+    color: var(--text-muted);
+    line-height: 1.8;
+}
+
+.projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.project-card {
+    background: #161b22;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 25px;
+}
+
+.project-card h3 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.project-card p {
+    margin-bottom: 15px;
+}
+
+footer {
+    border-top: 1px solid var(--border-color);
+    margin-top: 50px;
+    padding-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: var(--accent-orange);
+}
+
+@media(max-width:768px) {
+
+    sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    .section-card {
+        padding: 30px;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+
+<div class="app-layout">
+
+<sidebar>
+
+    <div class="sidebar-brand">
+        Horizon <span>Customs</span>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li>
+            <a href="https://horizoncustoms.github.io">
+                Home
+            </a>
+        </li>
+                
+        <li>
+            <a href="/horizon-one">
+                Horizon One
+            </a>
+        </li>
+
+        <li>
+            <a href="/#softwatch">
+                Softwatch
+            </a>
+        </li>
+
+        <li>
+            <a href="https://discord.gg/UdAKT57TK9"
+               target="_blank"
+               rel="noopener noreferrer">
+                Discord Server
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        © 2026 Horizon Customs
+    </div>
+
+</sidebar>
+
+<div class="main-content">
+
+    <div class="section-card hero">
+
+        <h1>Horizon Customs</h1>
+
+        <p>
+            Creating powerful Discord bots, liveries and uniforms,
+            ELS, and community solutions designed to help ERLC 
+                       servers grow with us.
+        </p>
+
+        <div class="cta-buttons">
+
+            <a href="https://horizoncustoms.github.io/horizon-one"
+               class="btn btn-secondary">
+                🤖 Explore Horizon One
+            </a>
+
+            <a href="https://discord.gg/UdAKT57TK9"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn btn-primary">
+                💬 Join Discord Server
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="section-card">
+
+        <h2>About Horizon Customs</h2>
+
+        <p>
+            Horizon Customs is committed to building modern,
+            reliable, and powerful Discord solutions. Our focus
+            is creating tools that help server owners moderate,
+            protect, and manage their communities with ease.
+        </p>
+
+    </div>
+
+    <div class="section-card">
+
+        <h2>Projects</h2>
+
+        <div class="projects">
+
+            <div class="project-card">
+                <h3>🤖 Horizon One</h3>
+
+                <p>
+                    A powerful all-in-one Discord bot to 
+                    manage your ERLC server featuring
+                    moderation, logging, verification, raid
+                    protection, and much more.
+                </p>
+
+                <a href="https://horizoncustoms.github.io/horizon-one"
+                   class="btn btn-primary">
+                    Learn More
+                </a>
+            </div>
+
+            <div class="project-card" id="softwatch">
+                <h3>🛡️ Softwatch</h3>
+
+                <p>
+                    More information about Softwatch will be
+                    available soon.
+                </p>
+
+                #
+                    Coming Soon
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+
+        <div>
+            © 2026 Horizon Customs. All rights reserved.
+        </div>
+
+        <div class="footer-links">
+            /privacypolicy/Privacy Policy</a>
+            /tos/Terms of Service</a>
+        </div>
+
+    </footer>
+
+</div>
+
+</div>
+
+</body>
+</html>
