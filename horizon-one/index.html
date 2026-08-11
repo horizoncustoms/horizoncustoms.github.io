@@ -1,1 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horizon One | Horizon Customs</title>
 
+<style>
+:root{
+    --bg-color:#0d1117;
+    --card-bg:#121212;
+    --border-color:#222222;
+    --accent-orange:#ff8800;
+    --text-main:#c9d1d9;
+    --text-muted:#888888;
+    --sidebar-width:260px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    background:var(--bg-color);
+    color:var(--text-main);
+}
+
+.top-bar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:6px;
+    background:var(--accent-orange);
+    z-index:1000;
+}
+
+.app-layout{
+    display:flex;
+    margin-top:6px;
+}
+
+/* Sidebar */
+
+sidebar{
+    width:var(--sidebar-width);
+    background:var(--card-bg);
+    border-right:1px solid var(--border-color);
+    position:fixed;
+    height:calc(100vh - 6px);
+    padding:30px 20px;
+    display:flex;
+    flex-direction:column;
+}
+
+.sidebar-brand{
+    font-size:1.2rem;
+    font-weight:bold;
+    color:#fff;
+    margin-bottom:40px;
+}
+
+.sidebar-brand span{
+    color:var(--accent-orange);
+}
+
+.sidebar-menu{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    flex:1;
+}
+
+.sidebar-menu a{
+    color:var(--text-muted);
+    text-decoration:none;
+    padding:10px 15px;
+    border-radius:8px;
+    font-weight:600;
+    transition:.2s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active{
+    color:#fff;
+    background:rgba(255,136,0,.10);
+    border-left:3px solid var(--accent-orange);
+}
+
+.sidebar-footer{
+    border-top:1px solid var(--border-color);
+    padding-top:15px;
+    font-size:12px;
+    color:var(--text-muted);
+}
+
+/* Main */
+
+.main-content{
+    margin-left:var(--sidebar-width);
+    width:100%;
+    padding:50px;
+}
+
+.section{
+    max-width:1100px;
+    margin:auto;
+    margin-bottom:40px;
+}
+
+.hero{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    padding:60px;
+    border-radius:16px;
+    text-align:center;
+}
+
+.hero h1{
+    font-size:3rem;
+    color:#fff;
+    margin-bottom:15px;
+}
+
+.hero p{
+    max-width:700px;
+    margin:0 auto 30px;
+    color:var(--text-muted);
+    line-height:1.8;
+}
+
+.cta-buttons{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    text-decoration:none;
+    padding:14px 28px;
+    border-radius:8px;
+    font-weight:bold;
+    transition:.2s;
+}
+
+.btn-primary{
+    background:var(--accent-orange);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:#e17800;
+}
+
+.btn-secondary{
+    background:#1a1a1a;
+    color:var(--text-main);
+    border:1px solid var(--border-color);
+}
+
+.btn-secondary:hover{
+    background:#252525;
+}
+
+/* Section Titles */
+
+.section-title{
+    text-align:center;
+    color:#fff;
+    font-size:2rem;
+    margin-bottom:15px;
+}
+
+.section-subtitle{
+    text-align:center;
+    color:var(--text-muted);
+    margin-bottom:40px;
+}
+
+/* Features Grid */
+
+.features-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:20px;
+}
+
+.feature-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:12px;
+    padding:25px;
+    transition:.2s;
+}
+
+.feature-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--accent-orange);
+}
+
+.feature-card h3{
+    color:#fff;
+    margin-bottom:10px;
+}
+
+.feature-card p{
+    color:var(--text-muted);
+    line-height:1.6;
+}
+
+/* Horizon+ */
+
+.horizon-plus{
+    background:linear-gradient(
+        135deg,
+        rgba(255,136,0,.18),
+        rgba(255,136,0,.05)
+    );
+    border:1px solid rgba(255,136,0,.3);
+    padding:50px;
+    border-radius:16px;
+    text-align:center;
+}
+
+.horizon-plus h2{
+    color:#fff;
+    margin-bottom:15px;
+}
+
+.horizon-plus p{
+    color:var(--text-main);
+    line-height:1.8;
+    max-width:800px;
+    margin:auto;
+}
+
+/* Add Bot Section */
+
+.add-bot{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:16px;
+    padding:60px;
+    text-align:center;
+}
+
+.add-bot h2{
+    color:#fff;
+    margin-bottom:15px;
+}
+
+.add-bot p{
+    color:var(--text-muted);
+    margin-bottom:30px;
+}
+
+/* Footer */
+
+footer{
+    max-width:1100px;
+    margin:60px auto 0;
+    padding-top:25px;
+    border-top:1px solid var(--border-color);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:15px;
+    color:var(--text-muted);
+    font-size:13px;
+}
+
+.footer-links{
+    display:flex;
+    gap:20px;
+}
+
+.footer-links a{
+    color:var(--text-muted);
+    text-decoration:none;
+}
+
+.footer-links a:hover{
+    color:var(--accent-orange);
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+    sidebar{
+        display:none;
+    }
+
+    .main-content{
+        margin-left:0;
+        padding:20px;
+    }
+
+    .hero,
+    .add-bot,
+    .horizon-plus{
+        padding:35px 25px;
+    }
+
+    .hero h1{
+        font-size:2.2rem;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar"></div>
+
+<div class="app-layout">
+
+    <sidebar>
+        <div class="sidebar-brand">
+            Horizon <span>Customs</span>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>/Home</a></li>
+            <li>#Horizon One</a></li>
+            <li>#softwatchSoftwatch</a></li>
+            <li>
+                <a href="https://discord.gg/UdAKT57TK9"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                   Discord Server
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            &copy; 2026 Horizon Customs
+        </div>
+    </sidebar>
+
+    <div class="main-content">
+
+        <!-- Hero -->
+
+        <section class="section">
+            <div class="hero">
+
+                <h1>Horizon One</h1>
+
+                <p>
+                    The all-in-one Discord administration solution built by
+                    Horizon Customs. Keep your community secure, organized,
+                    and running smoothly with powerful moderation tools,
+                    advanced protection systems, detailed logging, and
+                    continuous feature updates.
+                </p>
+
+                <div class="cta-buttons">
+                    #add-bot
+                        ➕ Add Horizon One
+                    </a>
+
+                    #features
+                        Learn More
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Features -->
+
+        <section class="section" id="features">
+
+            <h2 class="section-title">Powerful Features</h2>
+
+            <p class="section-subtitle">
+                Everything you need to protect and manage your Discord server.
+            </p>
+
+            <div class="features-grid">
+
+                <div class="feature-card">
+                    <h3>🛡 Advanced Raid Protection</h3>
+                    <p>Protect your server against bot attacks, raid attempts, spam, and malicious activity.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🔨 Moderation</h3>
+                    <p>Manage members with warnings, kicks, bans, mutes, and advanced moderation tools.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📜 Logging</h3>
+                    <p>Track moderation actions, role changes, joins, leaves, edits, and more.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>⚙ Customizable Configuration</h3>
+                    <p>Configure modules and settings to perfectly fit your community.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🌍 24/7 Uptime</h3>
+                    <p>Reliable infrastructure keeps Horizon One available whenever your server needs it.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🚀 New Features</h3>
+                    <p>Regular updates and improvements ensure your server always has the latest tools.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🤖 Automation</h3>
+                    <p>Automate repetitive tasks and simplify server management.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>👋 Welcome System</h3>
+                    <p>Create engaging welcome experiences for new members joining your server.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📊 Analytics</h3>
+                    <p>Gain insights into growth, activity, and member engagement.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Horizon+ -->
+
+        <section class="section">
+
+            <div class="horizon-plus">
+
+                <h2>⭐ Horizon+</h2>
+
+                <p>
+                    Looking for even more power? Horizon+ expands upon Horizon One
+                    with additional premium features, advanced systems, deeper
+                    customization, exclusive tools, and priority access to future
+                    releases. For server owners who want the absolute best experience,
+                    Horizon+ is one of the most valuable upgrades available and helps
+                    take community management to the next level.
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- Add Bot -->
+
+        <section class="section" id="add-bot">
+
+            <div class="add-bot">
+
+                <h2>Ready to Add Horizon One?</h2>
+
+                <p>
+                    Bring powerful moderation, security, logging, automation,
+                    and community management tools to your Discord server today.
+                </p>
+
+                YOUR_DISCORD_BOT_INVITE_LINK
+                    ➕ Add Horizon One
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+
+        <footer>
+
+            <div>
+                © 2026 Horizon Customs. All rights reserved.
+            </div>
+
+            <div class="footer-links">
+                /privacypolicyPrivacy Policy</a>
+                /tosTerms of Service</a>
+            </div>
+
+        </footer>
+
+    </div>
+
+</div>
+
+</body>
+</html>
