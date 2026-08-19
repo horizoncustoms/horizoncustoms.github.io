@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizon One | Server Management Panel</title>
+    <title>Ocean One | Server Management Panel</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -404,7 +404,7 @@
             </ul>
             <div class="sidebar-footer">
                 <a class="logout-link hidden" id="logout-btn" onclick="logoutSession()">Logout / Switch Account</a>
-                <div>&copy; 2026 Horizon Customs</div>
+                <div>&copy; 2026 OceanWorks</div>
             </div>
         </sidebar>
 
@@ -414,7 +414,7 @@
                 
                 <!-- 1. Login View -->
                 <div id="login-section">
-                    <h1>Horizon One Owner Panel</h1>
+                    <h1>Ocean One Owner Panel</h1>
                     <p>Authenticate with your Discord account to manage your servers.</p>
                     <button class="btn" onclick="loginWithDiscord()">Login with Discord</button>
                 </div>
@@ -422,7 +422,7 @@
                 <!-- 2. Server Selector View -->
                 <div id="selector-section" class="hidden">
                     <h1>Select a Server</h1>
-                    <p>Choose a server where you are the owner and Horizon One is added.</p>
+                    <p>Choose a server where you are the owner and Ocean One is added.</p>
                     
                     <div class="select-group">
                         <select id="server-select" onchange="handleServerSelection()">
@@ -461,7 +461,7 @@
 
             <!-- Footer -->
             <footer>
-                <div>&copy; 2026 Horizon Customs. All rights reserved.</div>
+                <div>&copy; 2026 OceanWorks. All rights reserved.</div>
                 <div class="footer-links">
                     <a href="/privacypolicy">Privacy Policy</a>
                     <a href="/tos">Terms of Service</a>
@@ -479,7 +479,7 @@
         if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
             REDIRECT_URI = window.location.origin + window.location.pathname;
         } else {
-            REDIRECT_URI = 'https://horizoncustoms.github.io/horizon-one/owner-panel/';
+            REDIRECT_URI = 'https://oceanworks.github.io/horizon-one/owner-panel/';
         }
 
         let userGuildsData = [];
@@ -588,7 +588,7 @@
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
                 document.getElementById('dashboard-subtitle').innerText = isCurrentServerPlus 
                     ? "Horizon+ Active: Per-server nitro profile branding & advanced features unlocked." 
-                    : "Standard Horizon One Server Panel. Upgrade to Horizon+ to unlock advanced features.";
+                    : "Standard Ocean One Server Panel. Upgrade to Horizon+ to unlock advanced features.";
             }
 
             renderModules();
@@ -705,7 +705,7 @@
                 modalBody.innerHTML = `
                     <div class="form-group">
                         <label>Custom Server Nickname</label>
-                        <input type="text" id="cfg-nickname" value="Horizon One">
+                        <input type="text" id="cfg-nickname" value="Ocean One">
                     </div>
                     <div class="form-group">
                         <label>Custom Profile Picture URL</label>
