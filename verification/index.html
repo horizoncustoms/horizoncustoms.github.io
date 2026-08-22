@@ -196,13 +196,13 @@
     <div class="app-layout">
         <sidebar>
             <div class="sidebar-brand">
-                Horizon <span>Customs</span>
+                <span>Ocean</span>works
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/">Home</a></li>
                 <li><a href="/verification" class="active">Verification</a></li>
-                <li><a href="#horizon-one">Ocean One Bot</a></li>
-                <li><a href="#beacon">Beacon</a></li>
+                <li><a href="/ocean-one/" class="active"> Ocean One Bot</a></li>
+                <li><a href="/beacon" class="active">Beacon</a></li>
                 <li><a href="https://discord.gg/UdAKT57TK9" target="_blank">Discord Server</a></li>
             </ul>
             <div class="sidebar-footer">
@@ -240,7 +240,7 @@
         const discordUserId = urlParams.get('discordId');
 
         const clientId = "6144543399746861341";
-        const redirectUri = "https://oceanworks.github.io/verification";
+        const redirectUri = "https://ocean-works.github.io/verification";
 
         if (authCode) {
             // Case 1: User returned from Roblox with an authorization code
