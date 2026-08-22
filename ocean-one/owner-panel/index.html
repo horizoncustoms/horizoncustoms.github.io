@@ -395,7 +395,7 @@
         <!-- Sidebar Navigation -->
         <sidebar>
             <div class="sidebar-brand">
-                Horizon <span>Customs</span>
+                Ocean <span>Works</span>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/">Home</a></li>
@@ -486,6 +486,8 @@
         let currentSelectedGuildId = null;
         let isCurrentServerPlus = false;
         let serverChannels = [];
+        let serverCategories = [];
+        let serverRoles = [];
         let activeConfigModule = '';
 
         window.onload = async () => {
@@ -576,19 +578,23 @@
                 if (res.ok) {
                     const data = await res.json();
                     serverChannels = data.channels;
+                    serverCategories = data.categories || [];
+                    serverRoles = data.roles || [];
                     isCurrentServerPlus = data.isPlus;
                 }
             } catch (e) {
                 console.warn("Could not reach backend API for channels. Using fallback.", e);
-                serverChannels = [{ id: 'fallback_1', name: 'horizon-one' }];
+                serverChannels = [{ id: 'fallback_1', name: 'ocean-one' }];
+                serverCategories = [];
+                serverRoles = [];
                 isCurrentServerPlus = false;
             }
 
             if (selectedGuild) {
                 document.getElementById('dashboard-server-name').innerText = `Managing: ${selectedGuild.name}`;
                 document.getElementById('dashboard-subtitle').innerText = isCurrentServerPlus 
-                    ? "Horizon+ Active: Per-server nitro profile branding & advanced features unlocked." 
-                    : "Standard Ocean One Server Panel. Upgrade to Horizon+ to unlock advanced features.";
+                    ? "Ocean+ Active: Per-server nitro profile branding & advanced features unlocked." 
+                    : "Standard Ocean One Server Panel. Upgrade to Ocean+ to unlock advanced features.";
             }
 
             renderModules();
@@ -608,7 +614,7 @@
             const container = document.getElementById('modules-container');
             container.innerHTML = '';
 
-            // Master list of all modules, marking which ones require Horizon+
+            // Master list of all modules, marking which ones require Ocean+
             const allModules = [
                 {
                     key: 'antinuke',
@@ -623,8 +629,26 @@
                     requiresPlus: false
                 },
                 {
+                    key: 'ticket_panel',
+                    title: '🎫 Ticket Panel',
+                    desc: 'Send the ticket portal panel to a channel so members can open tickets.',
+                    requiresPlus: false
+                },
+                {
+                    key: 'ticket_config',
+                    title: '⚙️ Ticket Configuration',
+                    desc: 'Rename ticket types, set the staff role, and choose a ticket category. Free servers get 4 types, Ocean+ servers get 15.',
+                    requiresPlus: false
+                },
+                {
+                    key: 'sessions',
+                    title: '📋 Session Management',
+                    desc: 'Set the sessions channel and pick which roles can host or manage sessions.',
+                    requiresPlus: false
+                },
+                {
                     key: 'customization',
-                    title: '🎨 Horizon+ Bot Profile',
+                    title: '🎨 Ocean+ Bot Profile',
                     desc: 'Customize per-server bot nickname, profile picture, banner, and bio layout like Nitro.',
                     requiresPlus: true
                 },
@@ -656,14 +680,14 @@
                 let badgeHtml = '';
                 if (mod.requiresPlus) {
                     badgeHtml = isLocked 
-                        ? `<div class="plus-badge locked-badge">Horizon+ Locked</div>` 
-                        : `<div class="plus-badge">Horizon+ Active</div>`;
+                        ? `<div class="plus-badge locked-badge">Ocean+ Locked</div>` 
+                        : `<div class="plus-badge">Ocean+ Active</div>`;
                 }
 
                 let footerHtml = '';
                 if (isLocked) {
                     footerHtml = `
-                        <div class="toggle-switch" style="color: #666;">Requires Horizon+</div>
+                        <div class="toggle-switch" style="color: #666;">Requires Ocean+</div>
                         <button class="edit-btn" disabled>Upgrade to Unlock</button>
                     `;
                 } else {
@@ -687,21 +711,113 @@
             });
         }
 
-        function openConfigModal(moduleKey) {
+        function buildOptionsHtml(list, selectedId, emptyLabel) {
+            const placeholder = emptyLabel ? `<option value="">${emptyLabel}</option>` : '';
+            const options = list.map(item => {
+                const selected = item.id === selectedId ? 'selected' : '';
+                return `<option value="${item.id}" ${selected}>${item.name}</option>`;
+            }).join('');
+            return placeholder + options;
+        }
+
+        function buildMultiSelectOptionsHtml(list, selectedIds) {
+            return list.map(item => {
+                const selected = (selectedIds || []).includes(item.id) ? 'selected' : '';
+                return `<option value="${item.id}" ${selected}>${item.name}</option>`;
+            }).join('');
+        }
+
+        async function openConfigModal(moduleKey) {
             activeConfigModule = moduleKey;
             const modalTitle = document.getElementById('modal-title');
             const modalBody = document.getElementById('modal-body');
             modalBody.innerHTML = '';
 
-            const defaultChannelQuery = 'horizon-one';
+            const defaultChannelQuery = 'ocean-one';
 
             let channelOptionsHtml = serverChannels.map(c => {
                 const isDefault = c.name.toLowerCase() === defaultChannelQuery ? 'selected' : '';
                 return `<option value="${c.id}" ${isDefault}>#${c.name}</option>`;
             }).join('');
 
+            if (moduleKey === 'ticket_panel') {
+                modalTitle.innerText = 'Send Ticket Panel';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Channel to Send Panel</label>
+                        <select id="cfg-panel-channel">${channelOptionsHtml}</select>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 13px;">This immediately posts the ticket panel with a dropdown of your configured ticket types to the channel above.</p>
+                `;
+                document.getElementById('config-modal').classList.remove('hidden');
+                return;
+            }
+
+            if (moduleKey === 'ticket_config') {
+                modalTitle.innerText = 'Ticket Configuration';
+                modalBody.innerHTML = `<p style="color: var(--text-muted);">Loading current settings...</p>`;
+                document.getElementById('config-modal').classList.remove('hidden');
+
+                let current = { types: [], staffRoleId: null, categoryId: null, limit: 4, isPlus: false };
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/tickets`);
+                    if (res.ok) current = await res.json();
+                } catch (e) {
+                    console.warn('Could not load ticket configuration.', e);
+                }
+
+                const roleOptionsHtml = buildOptionsHtml(serverRoles, current.staffRoleId, '-- None --');
+                const categoryOptionsHtml = buildOptionsHtml(serverCategories, current.categoryId, '-- None (top-level) --');
+
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Ticket Types (one per line, max ${current.limit})</label>
+                        <textarea id="cfg-ticket-types" rows="6">${current.types.join('\n')}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Staff Role (can view &amp; claim tickets)</label>
+                        <select id="cfg-ticket-staffrole">${roleOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ticket Category (optional)</label>
+                        <select id="cfg-ticket-category">${categoryOptionsHtml}</select>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 13px;">Limit: ${current.types.length}/${current.limit}${current.isPlus ? ' (Ocean+)' : ' — upgrade to Ocean+ for up to 15 types'}</p>
+                `;
+                return;
+            }
+
+            if (moduleKey === 'sessions') {
+                modalTitle.innerText = 'Session Management';
+                modalBody.innerHTML = `<p style="color: var(--text-muted);">Loading current settings...</p>`;
+                document.getElementById('config-modal').classList.remove('hidden');
+
+                let current = { channelId: null, hostRoleIds: [] };
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/sessions`);
+                    if (res.ok) current = await res.json();
+                } catch (e) {
+                    console.warn('Could not load session configuration.', e);
+                }
+
+                const sessionChannelOptionsHtml = buildOptionsHtml(serverChannels, current.channelId, '-- None --');
+                const sessionRoleOptionsHtml = buildMultiSelectOptionsHtml(serverRoles, current.hostRoleIds);
+
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label>Sessions Channel</label>
+                        <select id="cfg-session-channel">${sessionChannelOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Session Host Roles (ctrl/cmd-click to select multiple)</label>
+                        <select id="cfg-session-roles" multiple size="6">${sessionRoleOptionsHtml}</select>
+                    </div>
+                `;
+                return;
+            }
+
             if (moduleKey === 'customization') {
-                modalTitle.innerText = 'Horizon+ Per-Server Bot Profile';
+                modalTitle.innerText = 'Ocean+ Per-Server Bot Profile';
                 modalBody.innerHTML = `
                     <div class="form-group">
                         <label>Custom Server Nickname</label>
@@ -777,6 +893,78 @@
         }
 
         async function saveConfigModal() {
+            if (activeConfigModule === 'ticket_panel') {
+                const channelId = document.getElementById('cfg-panel-channel').value;
+                const selectedGuild = userGuildsData.find(g => g.id === currentSelectedGuildId);
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/tickets/panel`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ channelId, guildName: selectedGuild ? selectedGuild.name : undefined })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                        alert('Ticket panel sent!');
+                        closeConfigModal();
+                    } else {
+                        alert(data.error || 'Failed to send ticket panel.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error connecting to backend server.');
+                }
+                return;
+            }
+
+            if (activeConfigModule === 'ticket_config') {
+                const typesRaw = document.getElementById('cfg-ticket-types').value;
+                const types = typesRaw.split('\n').map(t => t.trim()).filter(Boolean);
+                const staffRoleId = document.getElementById('cfg-ticket-staffrole').value || null;
+                const categoryId = document.getElementById('cfg-ticket-category').value || null;
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/tickets`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ types, staffRoleId, categoryId })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                        alert('Ticket configuration saved!');
+                        closeConfigModal();
+                    } else {
+                        alert(data.error || 'Failed to save ticket configuration.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error connecting to backend server.');
+                }
+                return;
+            }
+
+            if (activeConfigModule === 'sessions') {
+                const channelId = document.getElementById('cfg-session-channel').value || null;
+                const roleSelect = document.getElementById('cfg-session-roles');
+                const hostRoleIds = Array.from(roleSelect.selectedOptions).map(o => o.value);
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/guilds/${currentSelectedGuildId}/sessions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ channelId, hostRoleIds })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                        alert('Session settings saved!');
+                        closeConfigModal();
+                    } else {
+                        alert(data.error || 'Failed to save session settings.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error connecting to backend server.');
+                }
+                return;
+            }
+
             let configData = {};
 
             if (activeConfigModule === 'customization') {
